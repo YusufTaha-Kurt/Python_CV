@@ -22,9 +22,10 @@ ortak çekirdek paket [`jarvis_vision`](jarvis_vision/) her derste büyür.
 | 2 | [Fare V2: Akışkanlık](dersler/ders_02_fare_v2/) | ✅ | 1€ filtresi, 144 Hz imleç thread'i, takılmanın kök nedeninin bulunması |
 | 3 | [Jest Merkezi ve Olay Yolu](dersler/ders_03_jest_merkezi/) | ✅ | 7 statik jest + kaydırma, olay tabanlı mimari, JSONL olay akışı |
 | 4 | [Medya ve Ses Kontrolü](dersler/ders_04_medya_kontrol/) | ✅ | Parmak mesafesiyle ses seviyesi, jestle medya kontrolü |
-| 5 | Kaydırma ve Pencere Yönetimi | ⏳ | İki parmakla scroll, masaüstü değiştirme, mod sistemi |
-| 6 | Hava Çizimi ve Holografik Menü | ⏳ | Parmakla çizim, Stark tarzı radyal menü |
-| 7+ | Yüz, Kimlik, Ses ve Beyin | 🗺️ | Ayrıntılar: [YOL_HARITASI.md](YOL_HARITASI.md) |
+| 5 | Güvenilir Çimdik ve Fare V3 | ⏳ | Yanlış tetiklemeye karşı 7 katmanlı çimdik, kişiye özel eşik örnekleyici |
+| 6-7 | Hologram Masası | ⏳ | Tarayıcıda cam kartlar: tut, fırlat, iki elle büyüt, pençeyle uzaktan çek |
+| 8 | Kaydırma, Pencere Yönetimi, Hava Çizimi | ⏳ | İki parmakla scroll, masaüstü değiştirme, mod sistemi |
+| 9+ | Yüz, Kimlik, Ses ve Beyin | 🗺️ | Ayrıntılar: [YOL_HARITASI.md](YOL_HARITASI.md) |
 
 ## Ölçülen iyileştirmeler (V1 → V2)
 
