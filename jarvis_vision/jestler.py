@@ -1,0 +1,178 @@
+"""El jestleri: parmak durumları, çimdik, statik jestler ve kaydırma (swipe).
+
+Bu modül sadece numpy kullanır; girdi olarak (21, 3) boyutlu nokta dizisi alır.
+Bu sayede kamera ve model olmadan, sentetik verilerle test edilebilir.
+"""
+
+import time
+from collections import deque
+from enum import Enum
+
+import numpy as np
+
+# MediaPipe el nokta indeksleri
+BILEK = 0
+BAS_IP, BAS_UCU = 3, 4
+ISARET_KOK, ISARET_PIP, ISARET_UCU = 5, 6, 8
+ORTA_KOK, ORTA_PIP, ORTA_UCU = 9, 10, 12
+YUZUK_PIP, YUZUK_UCU = 14, 16
+SERCE_KOK, SERCE_PIP, SERCE_UCU = 17, 18, 20
+
+PARMAK_ADLARI = ("bas", "isaret", "orta", "yuzuk", "serce")
+
+
+def mesafe(noktalar, a, b):
+    return float(np.linalg.norm(noktalar[a, :2] - noktalar[b, :2]))
+
+
+def el_boyutu(noktalar):
+    """Bilek ile orta parmak kökü arası mesafe. El kameraya yaklaşıp uzaklaştıkça
+    tüm mesafeler bu değere bölünerek ölçekten bağımsız hale getirilir."""
+    return max(mesafe(noktalar, BILEK, ORTA_KOK), 1e-6)
+
+
+def parmak_durumlari(noktalar):
+    """Her parmak için açık (True) / kapalı (False) döndürür: (bas, isaret, orta, yuzuk, serce).
+
+    Dört parmak: Uç, bileğe orta boğumdan (PIP) daha uzaksa parmak açıktır.
+    Başparmak: Uç, serçe köküne IP ekleminden daha uzaksa açıktır.
+    İki kural da elin dönüşünden bağımsızdır (sadece mesafe kıyaslanır).
+    """
+    bas_acik = mesafe(noktalar, BAS_UCU, SERCE_KOK) > mesafe(noktalar, BAS_IP, SERCE_KOK)
+    digerleri = tuple(
+        mesafe(noktalar, uc, BILEK) > mesafe(noktalar, pip, BILEK)
+        for uc, pip in ((ISARET_UCU, ISARET_PIP), (ORTA_UCU, ORTA_PIP), (YUZUK_UCU, YUZUK_PIP), (SERCE_UCU, SERCE_PIP))
+    )
+    return (bas_acik,) + digerleri
+
+
+def cimdik_orani(noktalar, a=BAS_UCU, b=ISARET_UCU):
+    """İki parmak ucu arası mesafenin el boyutuna oranı.
+
+    V1'de sabit 25 piksel eşiği vardı: el kameradan uzaklaşınca tıklama tetiklenmiyor,
+    yaklaşınca kendiliğinden tetikleniyordu. Oran kullanınca mesafe sorun olmaktan çıkar.
+    """
+    return mesafe(noktalar, a, b) / el_boyutu(noktalar)
+
+
+class Jest(Enum):
+    BILINMIYOR = "bilinmiyor"
+    YUMRUK = "yumruk"
+    AVUC = "avuc"
+    ISARET = "isaret"
+    ZAFER = "zafer"
+    L_ISARETI = "l_isareti"
+    BASPARMAK_YUKARI = "basparmak_yukari"
+    ROCK = "rock"
+
+
+def jest_tani(noktalar):
+    """Parmak durumlarından statik jesti çıkarır."""
+    bas, isaret, orta, yuzuk, serce = parmak_durumlari(noktalar)
+    dort_parmak = (isaret, orta, yuzuk, serce)
+
+    if not any(dort_parmak):
+        # Başparmak yukarı: başparmak açık ve ucu bileğin belirgin şekilde üstünde (y ekseni aşağı doğru artar)
+        if bas and noktalar[BAS_UCU, 1] < noktalar[BILEK, 1] - 0.5 * el_boyutu(noktalar):
+            return Jest.BASPARMAK_YUKARI
+        return Jest.YUMRUK
+    if all(dort_parmak):
+        return Jest.AVUC if bas else Jest.BILINMIYOR
+    if dort_parmak == (True, False, False, False):
+        return Jest.L_ISARETI if bas else Jest.ISARET
+    if dort_parmak == (True, True, False, False):
+        return Jest.ZAFER
+    if dort_parmak == (True, False, False, True):
+        return Jest.ROCK
+    return Jest.BILINMIYOR
+
+
+class CimdikAlgilayici:
+    """Histerezisli çimdik algılayıcı.
+
+    Tek eşik kullanılırsa oran eşiğin etrafında gidip gelirken saniyede onlarca
+    tık/bırak üretilir. Başlama eşiği bırakma eşiğinden küçük tutularak arada bir
+    "ölü bölge" bırakılır: bir kez çimdik başladıysa bitmesi için parmakların
+    belirgin şekilde açılması gerekir.
+    """
+
+    def __init__(self, baslama=0.25, birakma=0.38):
+        assert baslama < birakma
+        self.baslama = baslama
+        self.birakma = birakma
+        self.aktif = False
+
+    def guncelle(self, oran):
+        """Durum değiştiyse "basladi" / "bitti", değişmediyse None döndürür."""
+        if not self.aktif and oran < self.baslama:
+            self.aktif = True
+            return "basladi"
+        if self.aktif and oran > self.birakma:
+            self.aktif = False
+            return "bitti"
+        return None
+
+    def sifirla(self):
+        self.aktif = False
+
+
+class JestKararlilastirici:
+    """Bir jestin geçerli sayılması için belirli süre kesintisiz görülmesini şart koşar.
+
+    V1'de yumruk tutulduğu sürece uyku modu her saniye aç/kapa oluyordu.
+    Bu sınıf sadece jest DEĞİŞTİĞİNDE bir kez haber verir (kenar tetikleme).
+    """
+
+    def __init__(self, sure=0.3):
+        self.sure = sure
+        self.mevcut = Jest.BILINMIYOR
+        self._aday = Jest.BILINMIYOR
+        self._aday_baslangic = 0.0
+
+    def guncelle(self, jest, zaman=None):
+        """Kararlı jest değiştiyse yeni jesti, değişmediyse None döndürür."""
+        zaman = time.monotonic() if zaman is None else zaman
+        if jest != self._aday:
+            self._aday, self._aday_baslangic = jest, zaman
+        if self._aday != self.mevcut and zaman - self._aday_baslangic >= self.sure:
+            self.mevcut = self._aday
+            return self.mevcut
+        return None
+
+    def sifirla(self):
+        self.mevcut = self._aday = Jest.BILINMIYOR
+
+
+class KaydirmaAlgilayici:
+    """Elin yatay hızlı hareketini (swipe) algılar.
+
+    Son `pencere` saniyelik konumlar tutulur. Bu sürede el, el boyutunun `esik`
+    katı kadar yatay yol aldıysa ve dikey sapma küçükse kaydırma sayılır.
+    """
+
+    def __init__(self, pencere=0.35, esik=1.6, bekleme=0.6):
+        self.pencere = pencere
+        self.esik = esik
+        self.bekleme = bekleme
+        self._gecmis = deque()
+        self._son_tetikleme = -float("inf")
+
+    def guncelle(self, nokta, boyut, zaman=None):
+        """Kaydırma algılandıysa "sag" / "sol", yoksa None döndürür."""
+        zaman = time.monotonic() if zaman is None else zaman
+        self._gecmis.append((zaman, float(nokta[0]), float(nokta[1])))
+        while self._gecmis and zaman - self._gecmis[0][0] > self.pencere:
+            self._gecmis.popleft()
+
+        if zaman - self._son_tetikleme < self.bekleme or len(self._gecmis) < 3:
+            return None
+        _, x0, y0 = self._gecmis[0]
+        dx, dy = nokta[0] - x0, nokta[1] - y0
+        if abs(dx) > self.esik * boyut and abs(dy) < 0.6 * abs(dx):
+            self._son_tetikleme = zaman
+            self._gecmis.clear()
+            return "sag" if dx > 0 else "sol"
+        return None
+
+    def sifirla(self):
+        self._gecmis.clear()

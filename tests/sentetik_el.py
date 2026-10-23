@@ -1,0 +1,33 @@
+"""Testler için kamera gerektirmeyen sentetik el iskeleti üretir.
+
+Koordinatlar piksel cinsindendir, y ekseni aşağı doğru artar (görüntü koordinatı).
+Bilek (0, 0)'da, parmaklar yukarı (negatif y) bakar. El boyutu (bilek -> orta kök) = 90.
+"""
+
+import numpy as np
+
+_BAS_ACIK = [(-20, -20), (-40, -40), (-55, -60), (-70, -80)]
+_BAS_KAPALI = [(-20, -20), (-40, -40), (-55, -60), (10, -60)]
+_PARMAK_X = (-20, 0, 20, 40)  # işaret, orta, yüzük, serçe
+_ACIK_Y = (-90, -130, -155, -175)  # kök, PIP, DIP, uç
+_KAPALI_Y = (-90, -120, -100, -85)
+
+
+def sentetik_el(acik=(True, True, True, True, True)):
+    """acik: (bas, isaret, orta, yuzuk, serce) parmaklarının açık olup olmadığı."""
+    noktalar = [(0, 0)]
+    noktalar += _BAS_ACIK if acik[0] else _BAS_KAPALI
+    for x, parmak_acik in zip(_PARMAK_X, acik[1:]):
+        noktalar += [(x, y) for y in (_ACIK_Y if parmak_acik else _KAPALI_Y)]
+    dizi = np.zeros((21, 3), dtype=np.float32)
+    dizi[:, :2] = noktalar
+    return dizi
+
+
+def dondur(noktalar, derece):
+    """Eli bilek etrafında döndürür."""
+    aci = np.radians(derece)
+    matris = np.array([[np.cos(aci), -np.sin(aci)], [np.sin(aci), np.cos(aci)]])
+    sonuc = noktalar.copy()
+    sonuc[:, :2] = noktalar[:, :2] @ matris.T
+    return sonuc

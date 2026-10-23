@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jarvis-vision"
+version = "0.4.0"
+description = "JARVIS'in gözleri: MediaPipe + OpenCV ile el/jest tabanlı bilgisayar kontrolü"
+authors = [{ name = "Yusuf Taha Kurt" }]
+requires-python = ">=3.10"
+dependencies = [
+    "mediapipe>=0.10.30",
+    "numpy>=1.26",
+    "PyAutoGUI>=0.9.54",
+    "pycaw>=20240210; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["jarvis_vision"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]

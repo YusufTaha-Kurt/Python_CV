@@ -1,0 +1,10 @@
+# Tüm dersler için ortak bağımlılıklar (depo kökünden: pip install -r requirements.txt)
+# OpenCV, mediapipe ile birlikte (opencv-contrib-python) gelir; ayrıca opencv-python kurmayın, çakışır.
+mediapipe==0.10.32
+numpy==2.4.2
+PyAutoGUI==0.9.54
+pycaw==20260927 ; sys_platform == "win32"
+pytest==9.1.1
+
+# jarvis_vision paketini düzenlenebilir modda kurar (dersler her yerden içe aktarabilsin)
+-e .
