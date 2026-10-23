@@ -1,4 +1,10 @@
 venv/
+.venv/
 .vscode/
 *.task
+models/
 __pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+*.jsonl

@@ -2,6 +2,9 @@
 
 Bu proje, standart bir web kamerası ve görüntü işleme teknolojileri kullanarak bilgisayar faresini sadece el hareketleriyle kontrol etmeyi sağlayan Python tabanlı bir yazılımdır.
 
+> **Ders 1 (V1, arşiv).** Bu klasör ilk sürüm olarak olduğu gibi korunuyor. Takılma, titreme
+> ve tıklama sorunlarının çözüldüğü sürüm: [Ders 2: Fare V2](../dersler/ders_02_fare_v2/)
+
 ## 🚀 Özellikler (Faz 1 - Temel Kontrol)
 
 * **İmleç Takibi:** Başparmak ucu baz alınarak ekrandaki fare imlecinin düşük gecikmeli takibi.
@@ -25,22 +28,27 @@ Bu proje, standart bir web kamerası ve görüntü işleme teknolojileri kullana
 1. Repoyu bilgisayarınıza klonlayın ve projenin ilgili faz klasörüne girin:
    ```bash
    cd faz-1-mouse-kontrol
+   ```
 
 2. İzole bir Python sanal ortamı (venv) oluşturun ve aktifleştirin:
     * Windows için: 
         ```bash
         python -m venv venv 
         .\venv\Scripts\activate
+        ```
 
     * Mac/Linux için: 
         ```bash
         python3 -m venv venv
         source venv/bin/activate
+        ```
 
 3. Gerekli kütüphaneleri requirements.txt üzerinden yükleyin:
     ```bash
     pip install -r requirements.txt
+    ```
 
 4. Uygulamayı çalıştırın:
     ```bash
     python hand_tracking.py
+    ```
