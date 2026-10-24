@@ -22,8 +22,8 @@ paket [`goru`](goru/) (Bilgisayarlı **Görü**) her derste büyür. Son derste 
 | 3 | [Jest Merkezi ve Olay Yolu](dersler/ders_03_jest_merkezi/) | ✅ | 7 statik jest + kaydırma, olay tabanlı mimari, JSONL olay akışı |
 | 4 | [Medya ve Ses Kontrolü](dersler/ders_04_medya_kontrol/) | ✅ | Parmak mesafesiyle ses seviyesi, jestle medya kontrolü |
 | 5 | [Güvenilir Çimdik ve Fare V3](dersler/ders_05_guvenilir_cimdik/) | ✅ | 7 katmanlı çimdik: gerçek videoda sahte çimdik 12 → 2, kişiye özel eşik örnekleyici |
-| 6 | Hologram Masası I | ⏳ | Tarayıcıda 3D sahne: kartları tut, fırlat, iki elle büyüt |
-| 7 | Hologram Masası II | ⏳ | Pençeyle uzaktan çekme, alkış, 3D model patlatma, piramit hologram modu |
+| 6 | [Hologram Masası I](dersler/ders_06_hologram_masasi/) | ✅ | Tarayıcıda 3D sahne: kartları tut, fırlat, iki elle büyüt; karar Python'da, çizim three.js'te |
+| 7 | [Hologram Masası II](dersler/ders_07_hologram_masasi_2/) | ✅ | Pençeyle uzaktan çekme, alkış, 3D model patlatma, piramit hologram modu |
 | 8 | Kontrol Merkezi ve Hava Çizimi | ⏳ | Kaydırma, sanal masaüstü, mod makinesi, parmakla çizim |
 | 9 | Yüz İskeleti ve Baş Pozu | ⏳ | 478 yüz noktası, `solvePnP`, başla imleç |
 | 10 | Göz Kırpma ve Yorgunluk | ⏳ | EAR, göz kırparak tıklama, PERCLOS yorgunluk alarmı |
