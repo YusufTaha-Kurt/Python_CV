@@ -167,6 +167,16 @@ def test_canlilik_fotografla_kalir():
     assert "SONUC: KALDI" in cikti
 
 
+def test_nesne_tespiti_ve_takip():
+    cikti = calistir("dersler/ders_15_nesne_tespiti/nesne_tespiti.py", "--kaynak", _ornek("kedi_kopek.jpg"),
+                     "--kare-limiti", "30")
+    assert "'nesne': 'kedi'" in cikti and "'nesne': 'kopek'" in cikti
+
+
+def test_vucut_pozu():
+    calistir("dersler/ders_16_vucut_pozu/vucut_pozu.py", "--kaynak", _ornek("poz.jpg"), "--kare-limiti", "60")
+
+
 def test_cimdik_karsilastirma(el_videosu):
     cikti = calistir("dersler/ders_05_guvenilir_cimdik/karsilastir.py", "--kaynak", el_videosu)
     assert "V2:" in cikti and "V3:" in cikti

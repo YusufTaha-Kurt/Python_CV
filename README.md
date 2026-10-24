@@ -31,8 +31,8 @@ paket [`goru`](goru/) (Bilgisayarlı **Görü**) her derste büyür. Son derste 
 | 12 | [Yüz Tanıma](dersler/ders_12_yuz_tanima/) | ✅ | YuNet + SFace: aynı kişi 0.95+, farklı kişi < 0.25 benzerlik |
 | 13 | [Canlılık Testi](dersler/ders_13_canlilik/) | ✅ | Fotoğrafla kandırmaya karşı hareket sorgusu |
 | 14 | [Kapı Bekçisi](dersler/ders_14_kapi_bekcisi/) | ✅ | Tanıma + canlılık, uzaklaşınca Windows'u kilitleme |
-| 15 | Nesne Tespiti | ⏳ | EfficientDet, IoU takibi, işaret edilen nesne |
-| 16 | Vücut Pozu | ⏳ | Eklem açıları, egzersiz sayacı, duruş bekçisi |
+| 15 | [Nesne Tespiti](dersler/ders_15_nesne_tespiti/) | ✅ | EfficientDet, IoU takibi, işaret edilen nesne |
+| 16 | [Vücut Pozu](dersler/ders_16_vucut_pozu/) | ✅ | Eklem açıları, egzersiz sayacı, duruş bekçisi |
 | 17 | 7/24 Servis | ⏳ | Eklenti yetenekler, enerji tasarrufu, yerel HTTP arayüzü |
 
 Ayrıntılı müfredat: [YOL_HARITASI.md](YOL_HARITASI.md)
