@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hologram Masası</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: "Segoe UI", system-ui, sans-serif; }
+    #kamera { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    body.piramit #kamera { display: none; }
+    canvas { position: fixed; inset: 0; }
+    #mesajlar { position: fixed; left: 50%; top: 4%; transform: translateX(-50%); text-align: center;
+                color: #bff6ff; font-size: 20px; text-shadow: 0 0 12px #00d8ff; pointer-events: none; }
+    #mesajlar div { margin-top: 6px; padding: 6px 16px; border: 1px solid rgba(0, 220, 255, .5);
+                    background: rgba(4, 20, 34, .55); border-radius: 10px; }
+    #bilgi { position: fixed; left: 14px; bottom: 12px; color: #7ff6ff; font-size: 13px; line-height: 1.5;
+             background: rgba(4, 20, 34, .55); border: 1px solid rgba(0, 220, 255, .4); border-radius: 8px;
+             padding: 8px 12px; pointer-events: none; }
+    #bilgi.gizli, body.piramit #bilgi { display: none; }
+    #baglanti { color: #ff8a65; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <img id="kamera" src="/video.mjpg" alt="">
+  <div id="bilgi">
+    <b>HOLOGRAM MASASI</b> <span id="baglanti">bağlanıyor...</span><br>
+    <span id="sayac"></span><br>
+    OK çimdiği: tut / taşı &nbsp;·&nbsp; kısa çimdik: aç<br>
+    fırlat &nbsp;·&nbsp; iki elle tut: büyüt &nbsp;·&nbsp; modeli tutup bekle: döndür<br>
+    boş çimdikle yana sürükle: modeli patlat<br>
+    <span id="ders7"></span>
+    <b>p</b> piramit &nbsp; <b>f</b> tam ekran &nbsp; <b>h</b> bu yardımı gizle
+  </div>
+  <div id="mesajlar"></div>
+  <script type="module" src="sahne.js"></script>
+</body>
+</html>

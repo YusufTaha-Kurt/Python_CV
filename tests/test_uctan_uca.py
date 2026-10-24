@@ -98,6 +98,15 @@ def test_el_dersleri(betik, el_videosu):
     calistir(betik, "--kaynak", el_videosu)
 
 
+@pytest.mark.parametrize(
+    "betik",
+    ["dersler/ders_06_hologram_masasi/hologram_masasi.py", "dersler/ders_07_hologram_masasi_2/hologram_masasi_2.py"],
+)
+def test_hologram_dersleri(betik, el_videosu):
+    cikti = calistir(betik, "--kaynak", el_videosu, "--port", "0", "--tarayici-acma")
+    assert "http://127.0.0.1:" in cikti
+
+
 def test_cimdik_karsilastirma(el_videosu):
     cikti = calistir("dersler/ders_05_guvenilir_cimdik/karsilastir.py", "--kaynak", el_videosu)
     assert "V2:" in cikti and "V3:" in cikti

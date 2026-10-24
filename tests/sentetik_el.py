@@ -40,6 +40,21 @@ def sentetik_cimdik(diger_parmaklar_acik=True, aralik=0.0):
     return noktalar
 
 
+def sentetik_pence(kapali=False):
+    """Pençe: işaret, orta, yüzük kanca gibi kıvrık, serçe düz, başparmak uzakta.
+
+    kapali=True: başparmak işaret ucuna kapanmış ("snap").
+    """
+    noktalar = sentetik_el((True, True, True, True, True))
+    # Kancalar: kök -> PIP yukarı, DIP -> uç aşağı geri döner
+    noktalar[5:9, :2] = [(-20, -90), (-25, -125), (-28, -140), (-35, -128)]
+    noktalar[9:13, :2] = [(0, -90), (0, -127), (2, -143), (-3, -130)]
+    noktalar[13:17, :2] = [(20, -90), (22, -124), (25, -138), (19, -126)]
+    noktalar[17:21, :2] = [(40, -90), (40, -120), (40, -140), (40, -155)]
+    noktalar[1:5, :2] = [(-20, -20), (-40, -40), (-60, -50), (-40, -125) if kapali else (-95, -50)]
+    return noktalar
+
+
 def dondur(noktalar, derece):
     """Eli bilek etrafında döndürür."""
     aci = np.radians(derece)

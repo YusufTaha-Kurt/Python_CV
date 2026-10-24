@@ -93,6 +93,16 @@ def kivrim(noktalar, uc):
     return float(np.dot(p, d) / max(np.linalg.norm(p) * np.linalg.norm(d), 1e-9))
 
 
+def duz_parmak_sayisi(noktalar):
+    """Gerçekten DÜZ uzanan parmak sayısı (başparmak hariç, 0-4).
+
+    `parmak_durumlari` sadece uç-bilek mesafesine bakar; kanca gibi kıvrılmış bir parmağın ucu
+    da bileğe uzak kalabildiği için "açık" sayılabilir. Burada ayrıca parmağın düz olması
+    (kıvrım açısı) aranır. Açık avuç / pençe gibi ince ayrımlar için bunu kullan.
+    """
+    return sum(1 for uc in PARMAKLAR if kemer_orani(noktalar, uc) > 1.45 and kivrim(noktalar, uc) > 0.5)
+
+
 class Jest(Enum):
     BILINMIYOR = "bilinmiyor"
     YUMRUK = "yumruk"

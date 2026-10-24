@@ -21,6 +21,9 @@ test = ["pytest>=8"]
 [tool.setuptools]
 packages = ["goru"]
 
+[tool.setuptools.package-data]
+goru = ["hologram_web/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".", "tests"]
