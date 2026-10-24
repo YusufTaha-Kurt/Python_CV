@@ -1,6 +1,6 @@
 # Ders 3: Jest Merkezi ve Olay Yolu
 
-**Amaç:** JARVIS'in sinir sistemini kurmak. İki el aynı anda izlenir, jestler tanınır ve
+**Amaç:** Modüller arası haberleşmeyi kurmak. İki el aynı anda izlenir, jestler tanınır ve
 her şey bir **olay** olarak yayınlanır. Görüntü kodu ne yapılacağını bilmez, sadece ne
 olduğunu söyler.
 
@@ -41,14 +41,17 @@ Her olay `olaylar.jsonl` dosyasına bir satır JSON olarak eklenir:
 {"ad": "jest.degisti", "veri": {"el": "sag", "jest": "zafer", "parmak_sayisi": 2}, "zaman": 1761245112.4}
 ```
 
-**JARVIS entegrasyonu:** Kendi yapay zekan ister `OlayYolu`'na abone olur (aynı süreç),
-ister bu dosyayı satır satır okur (ayrı süreç). İkisi de görüntü koduna dokunmadan çalışır.
+**Entegrasyon:** Bu paketi kullanan başka bir uygulama ister `OlayYolu`'na abone olur
+(aynı süreç), ister bu dosyayı satır satır okur (ayrı süreç). İkisi de görüntü koduna
+dokunmadan çalışır.
 
 ```python
-from jarvis_vision.olaylar import OlayYolu
+from goru.jestler import JestYayincisi
+from goru.olaylar import OlayYolu
 
 yol = OlayYolu()
-yol.abone_ol("jest.degisti", lambda olay: print("Efendim,", olay.veri["jest"], "yaptınız."))
+yol.abone_ol("jest.degisti", lambda olay: print(olay.veri["el"], "elinde", olay.veri["jest"]))
+yayinci = JestYayincisi(yol)   # her kare: yayinci.guncelle(eller, zaman)
 ```
 
 ## Çalıştırma

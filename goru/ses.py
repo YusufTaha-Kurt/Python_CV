@@ -2,10 +2,6 @@
 
 import sys
 
-import pyautogui
-
-pyautogui.PAUSE = 0
-
 
 class SesKontrol:
     """Windows'ta pycaw ile ses seviyesini doğrudan (0.0 - 1.0) ayarlar.
@@ -53,9 +49,12 @@ class SesKontrol:
         if self._hacim:
             self._hacim.SetMute(not self.sessiz_mi(), None)
         else:
-            pyautogui.press("volumemute")
+            medya_tusu("volumemute")
 
 
 def medya_tusu(ad):
-    """ad: "playpause", "nexttrack", "prevtrack" """
-    pyautogui.press(ad)
+    """ad: "playpause", "nexttrack", "prevtrack", "volumemute" """
+    # pyautogui burada içe aktarılır: ekranı olmayan ortamlarda (CI) modül yine de yüklenebilsin
+    import pyautogui
+
+    pyautogui.press(ad, _pause=False)

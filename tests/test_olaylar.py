@@ -1,6 +1,6 @@
 import json
 
-from jarvis_vision.olaylar import JsonlKaydedici, OlayYolu
+from goru.olaylar import JsonlKaydedici, OlayYolu
 
 
 def test_abone_ve_joker():

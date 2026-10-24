@@ -1,7 +1,7 @@
-"""Olay yolu (event bus): JARVIS'in sinir sistemi.
+"""Olay yolu (event bus): modüller arası haberleşme ve dış uygulamalara entegrasyon arayüzü.
 
 Görüntü modülleri ne olduğunu YAYINLAR ("sağ elde yumruk yapıldı"), ne yapılacağını
-bilmez. Fare, medya kontrolü ya da ileride yazılacak yapay zeka asistanı bu olaylara
+bilmez. Fare, medya kontrolü ya da bu paketi kullanan başka bir uygulama bu olaylara
 ABONE olur. Böylece yeni bir yetenek eklemek için görüntü koduna dokunmak gerekmez.
 """
 
@@ -30,6 +30,11 @@ class OlayYolu:
         with self._kilit:
             self._aboneler.setdefault(ad, []).append(fonksiyon)
 
+    def abonelikten_cik(self, ad, fonksiyon):
+        with self._kilit:
+            if fonksiyon in self._aboneler.get(ad, []):
+                self._aboneler[ad].remove(fonksiyon)
+
     def yayinla(self, ad, **veri):
         olay = Olay(ad, veri)
         with self._kilit:
@@ -46,16 +51,18 @@ class OlayYolu:
 class JsonlKaydedici:
     """Her olayı bir satır JSON olarak dosyaya yazar.
 
-    Dil modelleri ve diğer süreçler bu dosyayı satır satır okuyarak (tail -f gibi)
-    görüntü olaylarını takip edebilir. JARVIS entegrasyonunun en basit köprüsü budur.
+    Başka süreçler (başka bir dilde yazılmış olsalar bile) bu dosyayı satır satır okuyarak
+    görüntü olaylarını takip edebilir. Ayrı süreçler arası en basit entegrasyon yolu budur.
     """
 
     def __init__(self, dosya_yolu):
         self._dosya = open(dosya_yolu, "a", encoding="utf-8")
+        self._kilit = threading.Lock()
 
     def __call__(self, olay):
-        self._dosya.write(json.dumps(asdict(olay), ensure_ascii=False) + "\n")
-        self._dosya.flush()
+        with self._kilit:
+            self._dosya.write(json.dumps(asdict(olay), ensure_ascii=False) + "\n")
+            self._dosya.flush()
 
     def kapat(self):
         self._dosya.close()

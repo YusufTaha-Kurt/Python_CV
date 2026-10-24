@@ -47,13 +47,14 @@ class ElTakipci:
         self._taraf_esleme = AYNALI_TARAF if ayna else AYNASIZ_TARAF
         self._son_zaman_ms = -1
 
-    def isle(self, kare_bgr):
+    def isle(self, kare_bgr, zaman=None):
+        """zaman: Karenin zamanı (sn). Verilmezse şimdiki zaman kullanılır."""
         yukseklik, genislik = kare_bgr.shape[:2]
         rgb_kare = cv2.cvtColor(kare_bgr, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_kare)
 
         # VIDEO modu kesin artan zaman damgası ister
-        zaman_ms = max(int(time.monotonic() * 1000), self._son_zaman_ms + 1)
+        zaman_ms = max(int((time.monotonic() if zaman is None else zaman) * 1000), self._son_zaman_ms + 1)
         self._son_zaman_ms = zaman_ms
         sonuc = self._dedektor.detect_for_video(mp_image, zaman_ms)
 

@@ -176,3 +176,53 @@ class KaydirmaAlgilayici:
 
     def sifirla(self):
         self._gecmis.clear()
+
+
+class JestYayincisi:
+    """Ders 3: Her el için kararlı jestleri ve kaydırmaları OlayYolu'na yayınlar.
+
+    Yayınlanan olaylar:
+        el.goruldu / el.kayboldu   {el}
+        jest.degisti               {el, jest, parmak_sayisi}
+        jest.kaydirma              {el, yon}
+
+    `eller`, `.taraf` ve `.noktalar` alanları olan nesnelerin listesidir (goru.el.El).
+    """
+
+    def __init__(self, yol, sure=0.3):
+        self.yol = yol
+        self.sure = sure
+        self._durumlar = {}  # taraf -> (JestKararlilastirici, KaydirmaAlgilayici)
+
+    def guncelle(self, eller, zaman):
+        gorulen = {e.taraf: e for e in eller}
+        for taraf in list(self._durumlar):
+            if taraf not in gorulen:
+                del self._durumlar[taraf]
+                self.yol.yayinla("el.kayboldu", el=taraf)
+
+        for taraf, el in gorulen.items():
+            if taraf not in self._durumlar:
+                self._durumlar[taraf] = (JestKararlilastirici(self.sure), KaydirmaAlgilayici())
+                self.yol.yayinla("el.goruldu", el=taraf)
+            kararli, kaydirma = self._durumlar[taraf]
+            n = el.noktalar
+
+            yeni_jest = kararli.guncelle(jest_tani(n), zaman)
+            if yeni_jest is not None:
+                self.yol.yayinla(
+                    "jest.degisti", el=taraf, jest=yeni_jest.value, parmak_sayisi=sum(parmak_durumlari(n))
+                )
+
+            # Kaydırma sadece açık avuçla yapılır; böylece fare hareketi kaydırma sanılmaz
+            if kararli.mevcut == Jest.AVUC:
+                yon = kaydirma.guncelle(n[ORTA_KOK], el_boyutu(n), zaman)
+                if yon:
+                    self.yol.yayinla("jest.kaydirma", el=taraf, yon=yon)
+            else:
+                kaydirma.sifirla()
+
+    def jest(self, taraf):
+        """Elin şu anki kararlı jesti (el görünmüyorsa BILINMIYOR)."""
+        durum = self._durumlar.get(taraf)
+        return durum[0].mevcut if durum else Jest.BILINMIYOR

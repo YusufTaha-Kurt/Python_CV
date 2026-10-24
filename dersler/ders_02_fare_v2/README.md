@@ -8,13 +8,13 @@ titremeyi ve yanlış tıklamaları ölçüp kök nedenlerini düzeltmek.
 1. **Asıl suçlu: PyAutoGUI.** `pyautogui.PAUSE` varsayılan olarak `0.1`'dir. Her `moveTo`
    ve `click` çağrısından sonra program 100 ms uyur. Döngü her karede `moveTo` çağırdığı
    için kamera 30 FPS verse bile sistem en fazla ~10 FPS çalışıyordu.
-   Çözüm: `pyautogui.PAUSE = 0` ([imlec.py](../../jarvis_vision/imlec.py)).
+   Çözüm: `pyautogui.PAUSE = 0` ([imlec.py](../../goru/imlec.py)).
 2. **Kamera ve monitör hızı uyuşmuyor.** İmleç sadece kare geldiğinde (30 Hz) hareket
    edince 144 Hz monitörde basamaklı görünür. Çözüm: `ImlecSurucu` imleci ayrı bir
    thread'de 144 Hz'de hedefe doğru akıtır.
 3. **Sabit yumuşatma ikilemi.** Faktör büyükse imleç hantal, küçükse titrek oluyordu.
    Çözüm: **1€ filtresi**. Bu filtre el yavaşken güçlü yumuşatma, hızlıyken az yumuşatma
-   uygular ([filtreler.py](../../jarvis_vision/filtreler.py)).
+   uygular ([filtreler.py](../../goru/filtreler.py)).
 4. **Tıklarken imleç kayıyordu.** İmleç başparmak ucundan alınıyordu ama çimdik yaparken
    başparmak hareket eder. Çözüm: imleç işaret parmağı kökünden (nokta 5) alınıyor ve
    çimdik başladığı anda imleç donduruluyor.
@@ -58,7 +58,7 @@ python dersler/ders_02_fare_v2/fare_v2.py --el sol --kamera 1
 Ayarlar dosyanın başındadır: `FILTRE_MIN_KESIM` (dururken titreme), `FILTRE_BETA`
 (hızlı harekette gecikme), `KUTU_ORANI` (çalışma alanı), `SURUKLEME_ESIGI`.
 
-> Sağ/sol el ters algılanıyorsa `jarvis_vision/el.py` içindeki `AYNALI_TARAF` eşlemesini değiştir.
+> Sağ/sol el ters algılanıyorsa `goru/el.py` içindeki `AYNALI_TARAF` eşlemesini değiştir.
 
 ## CV maddesi
 

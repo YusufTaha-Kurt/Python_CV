@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from jarvis_vision.filtreler import OneEuroFiltre
+from goru.filtreler import OneEuroFiltre
 
 FPS = 30
 

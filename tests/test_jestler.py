@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from jarvis_vision import jestler as j
-from jarvis_vision.jestler import Jest
+from goru import jestler as j
+from goru.jestler import Jest
 
 from sentetik_el import dondur, sentetik_el
 

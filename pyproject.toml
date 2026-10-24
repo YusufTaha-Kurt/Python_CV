@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jarvis-vision"
-version = "0.4.0"
-description = "JARVIS'in gözleri: MediaPipe + OpenCV ile el/jest tabanlı bilgisayar kontrolü"
+name = "goru"
+version = "1.0.0"
+description = "Bilgisayarlı görü ile bilgisayar kontrolü: MediaPipe + OpenCV ile el, yüz, vücut ve nesne tabanlı yetenekler"
 authors = [{ name = "Yusuf Taha Kurt" }]
 requires-python = ">=3.10"
 dependencies = [
@@ -19,8 +19,9 @@ dependencies = [
 test = ["pytest>=8"]
 
 [tool.setuptools]
-packages = ["jarvis_vision"]
+packages = ["goru"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".", "tests"]
+markers = ["uctan_uca: gerçek modellerle dersleri çalıştıran yavaş testler (mediapipe gerekir)"]

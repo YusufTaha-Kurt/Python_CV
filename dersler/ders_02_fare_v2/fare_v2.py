@@ -15,22 +15,21 @@ V1'e göre:
 Çalıştırma (depo kökünden):
     python dersler/ders_02_fare_v2/fare_v2.py
     python dersler/ders_02_fare_v2/fare_v2.py --sadece-izle   # fareyi oynatmadan dene
+    python dersler/ders_02_fare_v2/fare_v2.py --kaynak kayit.mp4   # kamera yerine video
 """
 
-import argparse
 import math
-import time
 
 import cv2
 import numpy as np
 import pyautogui
 
-from jarvis_vision import hud
-from jarvis_vision import jestler as j
-from jarvis_vision.el import ElTakipci
-from jarvis_vision.filtreler import OneEuroFiltre
-from jarvis_vision.imlec import ImlecSurucu
-from jarvis_vision.kamera import Kamera
+from goru import hud
+from goru import jestler as j
+from goru.el import ElTakipci
+from goru.filtreler import OneEuroFiltre
+from goru.imlec import ImlecSurucu
+from goru.uygulama import Uygulama, arguman_ayraci
 
 # --- Ayarlar ---
 KUTU_ORANI = 0.18  # Sanal çalışma alanının kamera kenarlarına uzaklığı (kare boyutuna oranla)
@@ -42,10 +41,8 @@ CIFT_TIK_PENCERESI = 0.3  # Bıraktıktan sonra imlecin donuk kalacağı süre (
 
 
 def argumanlar():
-    ayrac = argparse.ArgumentParser(description="JARVIS - El Kontrollü Fare V2")
-    ayrac.add_argument("--kamera", type=int, default=0, help="Kamera indeksi")
+    ayrac = arguman_ayraci("El Kontrollü Fare V2")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag", help="Fareyi yönetecek el")
-    ayrac.add_argument("--sadece-izle", action="store_true", help="Fareyi oynatma, sadece görselleştir")
     return ayrac.parse_args()
 
 
@@ -78,18 +75,15 @@ def main():
         sol_tik.sifirla()
         sag_tik.sifirla()
 
-    with Kamera(args.kamera) as kamera, ElTakipci() as takipci:
-        while True:
-            kare = kamera.oku()
-            if kare is None:
-                break
-            simdi = time.monotonic()
+    app = Uygulama(args, "Fare V2")
+    with ElTakipci() as takipci:
+        for kare, simdi in app.kareler():
             yukseklik, genislik = kare.shape[:2]
             kx1, ky1 = int(genislik * KUTU_ORANI), int(yukseklik * KUTU_ORANI)
             kx2, ky2 = genislik - kx1, yukseklik - ky1
             cv2.rectangle(kare, (kx1, ky1), (kx2, ky2), hud.CAMGOBEGI, 1, cv2.LINE_AA)
 
-            el = next((e for e in takipci.isle(kare) if e.taraf == args.el), None)
+            el = next((e for e in takipci.isle(kare, simdi) if e.taraf == args.el), None)
 
             if el is None:
                 # El kaybolduysa basılı tuş takılı kalmasın; filtre de sıfırlansın ki
@@ -171,15 +165,12 @@ def main():
                     f"FPS: {fps.tik():.0f}",
                     ("SADECE IZLEME" if args.sadece_izle else "Cikis: q", hud.BEYAZ),
                 ],
-                baslik="J.A.R.V.I.S. // FARE v2",
+                baslik="FARE v2",
             )
-            cv2.imshow("JARVIS - Fare V2", kare)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            app.goster(kare)
 
     fare_birak()
     surucu.durdur()
-    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

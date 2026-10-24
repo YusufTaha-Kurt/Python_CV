@@ -1,4 +1,4 @@
-"""Stark tarzı ekran üstü göstergeler (HUD) ve FPS sayacı."""
+"""Fütüristik ekran üstü göstergeler (HUD) ve FPS sayacı."""
 
 import math
 import time
@@ -9,7 +9,7 @@ import numpy as np
 from .el import EL_BAGLANTILARI
 
 # BGR renkler
-CAMGOBEGI = (255, 220, 0)  # JARVIS mavisi
+CAMGOBEGI = (255, 220, 0)  # HUD mavisi
 TURUNCU = (0, 165, 255)
 KIRMIZI = (40, 40, 230)
 YESIL = (80, 220, 80)
@@ -54,7 +54,7 @@ def reaktor_halkasi(kare, merkez, oran, yaricap=26, renk=CAMGOBEGI):
         cv2.line(kare, ic, dis, renk, 1, cv2.LINE_AA)
 
 
-def panel(kare, satirlar, sol_ust=(15, 15), baslik="J.A.R.V.I.S."):
+def panel(kare, satirlar, sol_ust=(15, 15), baslik="PYTHON CV"):
     """Yarı saydam bilgi paneli. satirlar: [(metin, renk), ...] veya [metin, ...]
     Not: cv2.putText Türkçe karakter desteklemez, metinler ASCII yazılmalı."""
     satirlar = [s if isinstance(s, tuple) else (s, BEYAZ) for s in satirlar]
