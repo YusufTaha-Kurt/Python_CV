@@ -10,15 +10,22 @@ from enum import Enum
 
 import numpy as np
 
-# MediaPipe el nokta indeksleri
+# MediaPipe el nokta indeksleri (kök = MCP, PIP = orta boğum, DIP = uç boğum)
 BILEK = 0
 BAS_IP, BAS_UCU = 3, 4
-ISARET_KOK, ISARET_PIP, ISARET_UCU = 5, 6, 8
-ORTA_KOK, ORTA_PIP, ORTA_UCU = 9, 10, 12
-YUZUK_PIP, YUZUK_UCU = 14, 16
-SERCE_KOK, SERCE_PIP, SERCE_UCU = 17, 18, 20
+ISARET_KOK, ISARET_PIP, ISARET_DIP, ISARET_UCU = 5, 6, 7, 8
+ORTA_KOK, ORTA_PIP, ORTA_DIP, ORTA_UCU = 9, 10, 11, 12
+YUZUK_KOK, YUZUK_PIP, YUZUK_DIP, YUZUK_UCU = 13, 14, 15, 16
+SERCE_KOK, SERCE_PIP, SERCE_DIP, SERCE_UCU = 17, 18, 19, 20
 
 PARMAK_ADLARI = ("bas", "isaret", "orta", "yuzuk", "serce")
+# Dört parmağın eklemleri: uç -> (kök, PIP, DIP, uç)
+PARMAKLAR = {
+    ISARET_UCU: (ISARET_KOK, ISARET_PIP, ISARET_DIP, ISARET_UCU),
+    ORTA_UCU: (ORTA_KOK, ORTA_PIP, ORTA_DIP, ORTA_UCU),
+    YUZUK_UCU: (YUZUK_KOK, YUZUK_PIP, YUZUK_DIP, YUZUK_UCU),
+    SERCE_UCU: (SERCE_KOK, SERCE_PIP, SERCE_DIP, SERCE_UCU),
+}
 
 
 def mesafe(noktalar, a, b):
@@ -53,6 +60,37 @@ def cimdik_orani(noktalar, a=BAS_UCU, b=ISARET_UCU):
     yaklaşınca kendiliğinden tetikleniyordu. Oran kullanınca mesafe sorun olmaktan çıkar.
     """
     return mesafe(noktalar, a, b) / el_boyutu(noktalar)
+
+
+def kemer_orani(noktalar, uc):
+    """Parmak ucunun bileğe uzaklığı / parmak kökünün bileğe uzaklığı.
+
+    Düz parmakta ~1.8-2.0, kıvrık parmakta ~1.0 civarıdır. Dönmeden bağımsızdır.
+    """
+    kok = PARMAKLAR[uc][0]
+    return mesafe(noktalar, uc, BILEK) / max(mesafe(noktalar, kok, BILEK), 1e-6)
+
+
+def avuc_en_boy(noktalar):
+    """Avuç uzunluğu (bilek -> orta kök) / avuç genişliği (işaret kökü -> serçe kökü).
+
+    El kameraya yan dönünce genişlik daralır ve oran büyür. Gerçek bir elde olamayacak kadar
+    büyük değerler, takip modelinin el şeklini "uydurduğunu" gösterir.
+    """
+    return el_boyutu(noktalar) / max(mesafe(noktalar, ISARET_KOK, SERCE_KOK), 1e-6)
+
+
+def kivrim(noktalar, uc):
+    """Parmağın kıvrımı: (kök -> PIP) ile (DIP -> uç) birim vektörlerinin 3D nokta çarpımı.
+
+    Düz parmakta iki segment aynı yöne bakar (~ +1), kanca gibi kıvrılınca uç segment geri
+    döner (< 0). Parmak kameraya doğru uzandığında 2D mesafeler kısalıp yanıltır, ama
+    segmentler arası açı her bakış açısında korunur.
+    """
+    kok, pip, dip, uc_ = PARMAKLAR[uc]
+    p = noktalar[pip] - noktalar[kok]
+    d = noktalar[uc_] - noktalar[dip]
+    return float(np.dot(p, d) / max(np.linalg.norm(p) * np.linalg.norm(d), 1e-9))
 
 
 class Jest(Enum):

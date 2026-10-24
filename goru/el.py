@@ -34,13 +34,15 @@ class ElTakipci:
     tespit yapmaz. Hem daha hızlı hem de noktalar daha az titrer.
     """
 
-    def __init__(self, max_el=2, tespit_guveni=0.6, takip_guveni=0.5, ayna=True):
+    def __init__(self, max_el=2, tespit_guveni=0.7, varlik_guveni=0.5, takip_guveni=0.5, ayna=True):
+        # Ders 5: Yeni el bulmak için yüksek eşik (kalabalık arka planda "hayalet el" çıkmasın),
+        # bulunmuş eli tutmak için düşük eşik (hızlı harekette bulanıklaşan el kaybolmasın).
         secenekler = vision.HandLandmarkerOptions(
             base_options=python.BaseOptions(model_asset_path=model_yolu("el")),
             running_mode=vision.RunningMode.VIDEO,
             num_hands=max_el,
             min_hand_detection_confidence=tespit_guveni,
-            min_hand_presence_confidence=tespit_guveni,
+            min_hand_presence_confidence=varlik_guveni,
             min_tracking_confidence=takip_guveni,
         )
         self._dedektor = vision.HandLandmarker.create_from_options(secenekler)

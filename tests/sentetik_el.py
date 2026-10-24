@@ -24,6 +24,22 @@ def sentetik_el(acik=(True, True, True, True, True)):
     return dizi
 
 
+def sentetik_cimdik(diger_parmaklar_acik=True, aralik=0.0):
+    """İşaret parmağı kıvrılıp başparmakla buluşmuş el.
+
+    diger_parmaklar_acik=True  -> "OK işareti" (gerçek çimdik)
+    diger_parmaklar_acik=False -> yumruk, başparmak işaretin üstünde (sahte çimdik)
+    aralik: Başparmak ucu ile işaret ucu arasındaki mesafe (el boyuna oranla).
+    """
+    acik = diger_parmaklar_acik
+    noktalar = sentetik_el((True, True, acik, acik, acik))
+    noktalar[6, :2] = (-35, -120)  # işaret PIP
+    noktalar[7, :2] = (-50, -115)  # işaret DIP
+    noktalar[8, :2] = (-52, -97)  # işaret ucu
+    noktalar[4, :2] = (-52 + 90 * aralik, -97)  # başparmak ucu
+    return noktalar
+
+
 def dondur(noktalar, derece):
     """Eli bilek etrafında döndürür."""
     aci = np.radians(derece)

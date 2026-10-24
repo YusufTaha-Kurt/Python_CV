@@ -91,10 +91,16 @@ def calistir(betik, *argumanlar, zaman_asimi=180):
         "dersler/ders_02_fare_v2/fare_v2.py",
         "dersler/ders_03_jest_merkezi/jest_merkezi.py",
         "dersler/ders_04_medya_kontrol/medya_kontrol.py",
+        "dersler/ders_05_guvenilir_cimdik/fare_v3.py",
     ],
 )
 def test_el_dersleri(betik, el_videosu):
     calistir(betik, "--kaynak", el_videosu)
+
+
+def test_cimdik_karsilastirma(el_videosu):
+    cikti = calistir("dersler/ders_05_guvenilir_cimdik/karsilastir.py", "--kaynak", el_videosu)
+    assert "V2:" in cikti and "V3:" in cikti
 
 
 def test_jest_merkezi_olay_uretir(el_videosu):
