@@ -40,7 +40,19 @@ yetenekler 7/24 arka planda çalışan, başka uygulamalara eklenebilen tek bir 
 | | **Faz 5: Entegrasyon** | |
 | 17 | [7/24 Servis](dersler/ders_17_servis/) | Paralel ön / arka plan, enerji tasarrufu, HTTP + SSE, kontrol paneli |
 
-Ayrıntılı müfredat: [YOL_HARITASI.md](YOL_HARITASI.md)
+Ayrıntılı müfredat: [YOL_HARITASI.md](YOL_HARITASI.md) · Hangi hareket ne yapar: [OZELLIKLER.md](OZELLIKLER.md)
+
+## Kodu nasıl okumalı?
+
+Bütün kod ve açıklamalar Türkçedir. Her modülün başında ne işe yaradığını anlatan bir açıklama,
+her sınıf ve fonksiyonun altında kısa bir docstring vardır. Önerilen okuma sırası:
+
+1. Dersin kendi dosyası (`dersler/ders_NN_*/`): başındaki açıklama jestleri anlatır, `main()` altındaki
+   açıklama dersin akışını adım adım verir. Dosya kısa tutuldu; asıl iş `goru/` paketindedir.
+2. Dersin `README.md` dosyası: kavramlar, ölçümler ve kodun neden böyle yazıldığı.
+3. Dersin kullandığı `goru/` modülü (aşağıdaki "Depo yapısı" tablosunda hangisi olduğu yazar).
+
+Testler de bir belgedir: `tests/` altındaki sentetik veriler her modülün nasıl kullanılacağını gösterir.
 
 ## Ölçülen sonuçlar
 
@@ -94,6 +106,8 @@ Modeller (toplam ~70 MB) ilk kullanımda `models/` klasörüne otomatik indirili
 python baslat.py                  # Tüm dersler menüden
 python baslat.py 5 --sadece-izle  # Ders 5'i fareye dokunmadan dene
 ```
+
+Hangi el hareketinin ne yaptığını unutursan [OZELLIKLER.md](OZELLIKLER.md) dosyasına bak.
 
 Her ders aynı seçenekleri destekler:
 

@@ -5,6 +5,8 @@ servis olarak 7/24 çalışabilen bir modül üretir. **17 dersin hepsi tamamlan
 kapsamında değildir; buradaki `goru` paketi ayrı bir uygulamaya özellik olarak eklenmek üzere
 tasarlanır (bkz. Ders 17).
 
+Hangi hareketin ne yaptığını tek sayfada görmek için: [OZELLIKLER.md](OZELLIKLER.md).
+
 **İlke:** Görüntü katmanı sadece olay yayınlar, eylemi aboneler yapar. Her ders `goru/` paketine
 yeniden kullanılabilir bir modül ekler ve kamera gerektirmeyen kısımlar test edilir.
 
@@ -64,6 +66,8 @@ dersler/ders_NN_konu/
 
 Kontrol listesi:
 - [ ] Yeni yeniden kullanılabilir mantık `goru/` altına
+- [ ] Türkçe açıklamalar: modül başında "ne, neden, nasıl", her sınıf / fonksiyonda docstring, `main()` altında akış özeti
+- [ ] Yeni jest / özellik [OZELLIKLER.md](OZELLIKLER.md) tablosuna eklendi
 - [ ] Kamera gerektirmeyen kısımlar için `tests/` altında birim testi
 - [ ] Uçtan uca test (`tests/test_uctan_uca.py`)
 - [ ] `--kaynak`, `--pencere-yok`, `--kare-limiti`, `--sadece-izle` destekleniyor
