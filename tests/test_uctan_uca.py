@@ -38,7 +38,10 @@ def _ornek(ad):
     if not os.path.exists(yol):
         os.makedirs(VERI, exist_ok=True)
         try:
-            urllib.request.urlretrieve(ORNEKLER[ad], yol)
+            # Bazı siteler (pixabay) Python'un varsayılan User-Agent'ını reddeder
+            istek = urllib.request.Request(ORNEKLER[ad], headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(istek, timeout=30) as yanit, open(yol, "wb") as dosya:
+                dosya.write(yanit.read())
         except Exception as hata:
             pytest.skip(f"Örnek veri indirilemedi ({ad}): {hata}")
     return yol
@@ -119,6 +122,49 @@ def test_hologram_dersleri(betik, el_videosu):
 )
 def test_yuz_dersleri(betik, ek):
     calistir(betik, "--kaynak", _ornek("yuz.png"), "--kare-limiti", "90", *ek)
+
+
+@pytest.fixture(scope="session")
+def yuz_videosu():
+    """Aynı yüz fotoğrafının -35°..35° döndürülmüş ve ölçeklenmiş halleri: kayıt için çeşitli açılar."""
+    yol = os.path.join(VERI, "yuz_cesitli.mp4")
+    if os.path.exists(yol):
+        return yol
+    yuz = cv2.imread(_ornek("yuz.png"))
+    yuz = cv2.resize(yuz, None, fx=700 / yuz.shape[0], fy=700 / yuz.shape[0])
+    h, w = yuz.shape[:2]
+    yazici = cv2.VideoWriter(yol, cv2.VideoWriter_fourcc(*"mp4v"), 30, (1280, 720))
+    for aci in range(-35, 36, 5):
+        for olcek in (1.0, 0.6):
+            donmus = cv2.warpAffine(yuz, cv2.getRotationMatrix2D((w / 2, h / 2), aci, olcek), (w, h))
+            tuval = np.full((720, 1280, 3), 40, np.uint8)
+            tuval[10 : 10 + h, 400 : 400 + w] = donmus
+            for _ in range(3):
+                yazici.write(tuval)
+    yazici.release()
+    return yol
+
+
+def test_kimlik_akisi_fotografla_kapi_acilmaz(yuz_videosu, tmp_path):
+    """Kaydol -> tanın -> aynı fotoğrafla kapıyı açmayı dene: tanınır ama canlılık testinde reddedilir."""
+    kimlikler = str(tmp_path / "kimlikler")
+    cikti = calistir("dersler/ders_12_yuz_tanima/yuz_tanima.py", "--kaydet", "Deneme", "--kimlikler", kimlikler,
+                     "--kaynak", yuz_videosu)
+    assert "Deneme kaydedildi" in cikti
+    cikti = calistir("dersler/ders_12_yuz_tanima/yuz_tanima.py", "--kimlikler", kimlikler,
+                     "--kaynak", _ornek("yuz.png"), "--kare-limiti", "5")
+    assert "[TANIMA] Deneme" in cikti
+    cikti = calistir("dersler/ders_12_yuz_tanima/yuz_tanima.py", "--kimlikler", kimlikler,
+                     "--kaynak", _ornek("poz.jpg"), "--kare-limiti", "5")
+    assert "[TANIMA] taninmadi" in cikti
+    cikti = calistir("dersler/ders_14_kapi_bekcisi/kapi_bekcisi.py", "--kimlikler", kimlikler,
+                     "--kaynak", _ornek("yuz.png"), "--kare-limiti", "300")
+    assert "kapi.dogrulaniyor" in cikti and "kapi.reddedildi" in cikti and "kapi.acildi" not in cikti
+
+
+def test_canlilik_fotografla_kalir():
+    cikti = calistir("dersler/ders_13_canlilik/canlilik_testi.py", "--kaynak", _ornek("yuz.png"), "--kare-limiti", "240")
+    assert "SONUC: KALDI" in cikti
 
 
 def test_cimdik_karsilastirma(el_videosu):

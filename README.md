@@ -28,9 +28,9 @@ paket [`goru`](goru/) (Bilgisayarlı **Görü**) her derste büyür. Son derste 
 | 9 | [Yüz İskeleti ve Baş Pozu](dersler/ders_09_bas_pozu/) | ✅ | 478 yüz noktası, `solvePnP`, başla imleç |
 | 10 | [Göz Kırpma ve Yorgunluk](dersler/ders_10_goz_kirpma/) | ✅ | EAR, göz kırparak tıklama, PERCLOS yorgunluk alarmı |
 | 11 | [Mimik Komutları](dersler/ders_11_mimik/) | ✅ | 52 ifade skoru, nötr yüz kalibrasyonu |
-| 12 | Yüz Tanıma | ⏳ | YuNet + SFace, kosinüs benzerliği |
-| 13 | Canlılık Testi | ⏳ | Fotoğrafla kandırmaya karşı hareket sorgusu |
-| 14 | Kapı Bekçisi | ⏳ | Tanıma + canlılık, uzaklaşınca Windows'u kilitleme |
+| 12 | [Yüz Tanıma](dersler/ders_12_yuz_tanima/) | ✅ | YuNet + SFace: aynı kişi 0.95+, farklı kişi < 0.25 benzerlik |
+| 13 | [Canlılık Testi](dersler/ders_13_canlilik/) | ✅ | Fotoğrafla kandırmaya karşı hareket sorgusu |
+| 14 | [Kapı Bekçisi](dersler/ders_14_kapi_bekcisi/) | ✅ | Tanıma + canlılık, uzaklaşınca Windows'u kilitleme |
 | 15 | Nesne Tespiti | ⏳ | EfficientDet, IoU takibi, işaret edilen nesne |
 | 16 | Vücut Pozu | ⏳ | Eklem açıları, egzersiz sayacı, duruş bekçisi |
 | 17 | 7/24 Servis | ⏳ | Eklenti yetenekler, enerji tasarrufu, yerel HTTP arayüzü |
