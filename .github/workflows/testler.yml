@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # Saf mantık testleri (jestler, filtreler, olay yolu) kamera ve mediapipe gerektirmez
-      - run: pip install numpy pytest
+      # Birim testleri kamera ve MediaPipe gerektirmez (uçtan uca testler kendini atlar).
+      # Çizim ve solvePnP için ekransız OpenCV; sürüm, mediapipe'ın getirdiği OpenCV ile aynı.
+      - run: pip install numpy pytest opencv-python-headless==4.13.0.92
       - run: pytest -v
