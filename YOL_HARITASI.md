@@ -1,7 +1,7 @@
 # Yol Haritası
 
 Bu repo, bilgisayarlı görü ile bilgisayar kontrolünü **ders ders** öğreten ve sonunda tek bir
-servis olarak 7/24 çalışabilen bir modül üretir. Asistan, ses ve hafıza gibi konular bu reponun
+servis olarak 7/24 çalışabilen bir modül üretir. **17 dersin hepsi tamamlandı.** Asistan, ses ve hafıza gibi konular bu reponun
 kapsamında değildir; buradaki `goru` paketi ayrı bir uygulamaya özellik olarak eklenmek üzere
 tasarlanır (bkz. Ders 17).
 
