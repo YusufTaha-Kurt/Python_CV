@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python CV Servis</title>
+  <style>
+    :root { --zemin: #0b1620; --kart: #102331; --cizgi: #1f4256; --yazi: #d8f3ff; --soluk: #7fa6b8; --mavi: #00d8ff; --yesil: #5ee08f; --turuncu: #ffaa33; --kirmizi: #ff6b6b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; background: var(--zemin); color: var(--yazi); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+    h1 { font-size: 20px; margin: 0 0 4px; color: var(--mavi); letter-spacing: .5px; }
+    .alt { color: var(--soluk); margin-bottom: 18px; }
+    .izgara { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .kart { background: var(--kart); border: 1px solid var(--cizgi); border-radius: 10px; padding: 14px; }
+    .kart h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; color: var(--soluk); letter-spacing: 1px; }
+    .sayi { font-size: 26px; font-weight: 600; }
+    .satir { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid var(--cizgi); }
+    .satir:first-of-type { border-top: 0; }
+    .etiket { color: var(--soluk); }
+    .ozet { font-size: 12px; }
+    .satir button { margin-left: 12px; flex-shrink: 0; }
+    button { background: transparent; color: var(--mavi); border: 1px solid var(--mavi); border-radius: 6px; padding: 4px 12px; cursor: pointer; font: inherit; }
+    button.kapat { color: var(--kirmizi); border-color: var(--kirmizi); }
+    button:hover { background: rgba(0, 216, 255, .12); }
+    #olaylar { font-family: Consolas, monospace; font-size: 12px; max-height: 420px; overflow-y: auto; }
+    #olaylar div { padding: 3px 0; border-top: 1px solid var(--cizgi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rozet { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; }
+    .yesil { background: rgba(94, 224, 143, .15); color: var(--yesil); }
+    .turuncu { background: rgba(255, 170, 51, .15); color: var(--turuncu); }
+    .kirmizi { background: rgba(255, 107, 107, .15); color: var(--kirmizi); }
+  </style>
+</head>
+<body>
+  <h1>PYTHON CV SERVİS</h1>
+  <div class="alt">Yerel kontrol paneli · olaylar canlı akıyor (<code>/olaylar</code>)</div>
+  <div class="izgara">
+    <div class="kart">
+      <h2>Durum</h2>
+      <div class="satir"><span class="etiket">Servis</span><span id="servis" class="rozet turuncu">bağlanıyor</span></div>
+      <div class="satir"><span class="etiket">Kare hızı</span><span><span id="fps" class="sayi">-</span> FPS</span></div>
+      <div class="satir"><span class="etiket">Kare başına işlem</span><span id="islem">-</span></div>
+      <div class="satir"><span class="etiket">Çalışan modeller</span><span id="takipciler">-</span></div>
+      <div class="satir"><span class="etiket">Çalışma süresi</span><span id="sure">-</span></div>
+      <div class="satir"><span class="etiket"></span><span><button id="duraklat">Duraklat</button></span></div>
+    </div>
+    <div class="kart">
+      <h2>Yetenekler</h2>
+      <div id="yetenekler"></div>
+    </div>
+    <div class="kart" style="grid-column: 1 / -1">
+      <h2>Son olaylar</h2>
+      <div id="olaylar"></div>
+    </div>
+  </div>
+<script>
+  // Tüm dinamik içerik textContent ile yazılır (olay verisi HTML olarak yorumlanmaz)
+  const $ = (id) => document.getElementById(id);
+  let durum = null;
+
+  function komut(veri) {
+    fetch("/komut", { method: "POST", body: JSON.stringify(veri) });
+  }
+
+  function satir(etiket, sag) {
+    const d = document.createElement("div");
+    d.className = "satir";
+    const s = document.createElement("span");
+    s.className = "etiket";
+    s.textContent = etiket;
+    d.append(s, sag);
+    return d;
+  }
+
+  function yeteneklerCiz() {
+    const kutu = $("yetenekler");
+    const ogeler = [];
+    for (const [ad, bilgi] of Object.entries(durum.yetenekler)) {
+      const d = document.createElement("div");
+      d.className = "satir";
+      const sol = document.createElement("span");
+      const isim = document.createElement("div");
+      isim.textContent = ad;
+      const ozet = document.createElement("div");
+      ozet.className = "etiket ozet";
+      ozet.textContent = Object.entries(bilgi).map(([k, v]) => `${k}: ${v}`).join(" · ") || "çalışıyor";
+      sol.append(isim, ozet);
+      const b = document.createElement("button");
+      b.className = "kapat";
+      b.textContent = "Kapat";
+      b.onclick = () => komut({ a: "yetenek_kapat", ad });
+      d.append(sol, b);
+      ogeler.push(d);
+    }
+    for (const ad of durum.kapali_yetenekler) {
+      const b = document.createElement("button");
+      b.textContent = "Aç";
+      b.onclick = () => komut({ a: "yetenek_ac", ad });
+      ogeler.push(satir(ad + " (kapalı)", b));
+    }
+    kutu.replaceChildren(...ogeler);
+  }
+
+  new EventSource("/durum").onmessage = (e) => {
+    durum = JSON.parse(e.data);
+    const etiket = durum.duraklatildi ? ["duraklatıldı", "turuncu"] : durum.bekleme ? ["bekleme (kimse yok)", "turuncu"]
+      : durum.calisiyor ? ["çalışıyor", "yesil"] : ["durdu", "kirmizi"];
+    $("servis").textContent = etiket[0];
+    $("servis").className = "rozet " + etiket[1];
+    $("fps").textContent = durum.fps;
+    $("islem").textContent = durum.islem_ms + " ms";
+    $("takipciler").textContent = durum.takipciler.join(", ") || "-";
+    $("sure").textContent = Math.floor(durum.sure_sn / 60) + " dk";
+    $("duraklat").textContent = durum.duraklatildi ? "Devam et" : "Duraklat";
+    yeteneklerCiz();
+  };
+  $("duraklat").onclick = () => komut({ a: durum && durum.duraklatildi ? "devam" : "duraklat" });
+
+  new EventSource("/olaylar?gecmis=1").onmessage = (e) => {
+    const olay = JSON.parse(e.data);
+    const d = document.createElement("div");
+    const saat = new Date(olay.zaman * 1000).toLocaleTimeString("tr-TR");
+    d.textContent = `${saat}  ${olay.ad}  ${JSON.stringify(olay.veri)}`;
+    $("olaylar").prepend(d);
+    while ($("olaylar").childElementCount > 200) $("olaylar").lastChild.remove();
+  };
+</script>
+</body>
+</html>

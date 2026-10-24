@@ -9,6 +9,7 @@ Sadece Python standart kütüphanesi kullanılır ve sunucu yalnızca 127.0.0.1'
     GET  /video.mjpg    MJPEG video akışı (<img src="/video.mjpg"> ile gösterilir)
     GET  /durum         SSE: her zaman SADECE en son durum (ara durumlar atlanır)
     GET  /olaylar       SSE: olayların HEPSİ, sırayla (her istemcinin kendi kuyruğu)
+                        ?gecmis=1 ile bağlanınca önce son 50 olay gönderilir (kontrol paneli için)
     GET  /durum.json    En son durumun anlık görüntüsü
     POST /komut         JSON komut {"a": "...", ...}; izin listesinde olmayanlar reddedilir
 """
@@ -16,12 +17,25 @@ Sadece Python standart kütüphanesi kullanılır ve sunucu yalnızca 127.0.0.1'
 import json
 import mimetypes
 import queue
+import sys
 import threading
 import urllib.parse
+from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 KALP_ATISI = 15.0  # Saniye: boşta kalan SSE bağlantısına yorum satırı gönderilir
+_BAGLANTI_KAPANDI = (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)
+
+
+class _Sunucu(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        # Tarayıcı sekmesi kapanınca bağlantı koparılır: bu bir hata değil, günlüğe yazılmasın
+        if isinstance(sys.exc_info()[1], _BAGLANTI_KAPANDI):
+            return
+        super().handle_error(request, client_address)
 
 
 class CanliYayin:
@@ -35,6 +49,7 @@ class CanliYayin:
         self._durum, self._durum_no = b"{}", 0
         self._video_istemcileri = 0
         self._olay_kuyruklari = []
+        self._son_olaylar = deque(maxlen=50)
         self._komutlar = queue.Queue()
         self._calisiyor = False
         self._sunucu = None
@@ -67,6 +82,7 @@ class CanliYayin:
         """olay: JSON'a çevrilebilir sözlük. Bağlı her istemciye sırayla iletilir."""
         veri = json.dumps(olay, ensure_ascii=False).encode("utf-8")
         with self._kosul:
+            self._son_olaylar.append(veri)
             for kuyruk in self._olay_kuyruklari:
                 if kuyruk.qsize() < 1000:  # Yavaş istemci belleği şişirmesin
                     kuyruk.put(veri)
@@ -94,7 +110,7 @@ class CanliYayin:
                 if yol == "/durum":
                     return yayin._sse_durum(self)
                 if yol == "/olaylar":
-                    return yayin._sse_olaylar(self)
+                    return yayin._sse_olaylar(self, gecmis="gecmis=1" in self.path)
                 if yol == "/durum.json":
                     with yayin._kosul:
                         veri = yayin._durum
@@ -116,8 +132,7 @@ class CanliYayin:
                 yayin._komutlar.put(komut)
                 return yayin._gonder(self, 204, b"")
 
-        self._sunucu = ThreadingHTTPServer(("127.0.0.1", self.port), Isleyici)
-        self._sunucu.daemon_threads = True
+        self._sunucu = _Sunucu(("127.0.0.1", self.port), Isleyici)
         self.port = self._sunucu.server_address[1]
         self._calisiyor = True
         threading.Thread(target=self._sunucu.serve_forever, daemon=True).start()
@@ -182,10 +197,13 @@ class CanliYayin:
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
             pass
 
-    def _sse_olaylar(self, istek):
+    def _sse_olaylar(self, istek, gecmis=False):
         self._sse_baslik(istek)
         kuyruk = queue.Queue()
         with self._kosul:
+            if gecmis:
+                for veri in self._son_olaylar:
+                    kuyruk.put(veri)
             self._olay_kuyruklari.append(kuyruk)
         try:
             while self._calisiyor:

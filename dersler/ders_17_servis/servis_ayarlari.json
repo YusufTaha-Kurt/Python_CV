@@ -1,0 +1,15 @@
+{
+  "kaynak": 0,
+  "cozunurluk": [960, 540],
+  "sadece_izle": false,
+  "http": {"acik": true, "port": 8770},
+  "tasarruf": {"bekleme_suresi": 15.0, "bekleme_fps": 2.0},
+  "yetenekler": {
+    "kontrol": {"acik": true, "el": "sag"},
+    "yorgunluk": {"acik": true, "alarm": false, "perclos_esigi": 0.15},
+    "durus": {"acik": false, "alarm": false, "uyari_suresi": 20.0, "uyari_araligi": 300.0},
+    "mimik": {"acik": false, "eylemler": false},
+    "kapi": {"acik": false, "sadece_sahip": true, "windows_kilitle": false, "kilit_suresi": 60, "sahipler": null},
+    "nesne": {"acik": false, "siniflar": null, "esik": 0.5}
+  }
+}

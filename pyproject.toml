@@ -22,7 +22,7 @@ test = ["pytest>=8"]
 packages = ["goru"]
 
 [tool.setuptools.package-data]
-goru = ["hologram_web/*"]
+goru = ["hologram_web/*", "servis_web/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

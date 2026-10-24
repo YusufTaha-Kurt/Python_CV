@@ -81,6 +81,17 @@ def test_olay_akisi_hepsini_sirayla_verir(yayin):
     assert [_sonraki_veri(yanit)["i"] for _ in range(3)] == [0, 1, 2]
 
 
+def test_olay_gecmisi_sadece_istenirse(yayin):
+    for i in range(3):
+        yayin.olay_yayinla({"ad": "eski", "i": i})
+    gecmisli = _sse_oku(yayin, "/olaylar?gecmis=1", 3)
+    assert [_sonraki_veri(gecmisli)["i"] for _ in range(3)] == [0, 1, 2]
+    gecmissiz = _sse_oku(yayin, "/olaylar", 1)
+    time.sleep(0.2)
+    yayin.olay_yayinla({"ad": "yeni", "i": 9})
+    assert _sonraki_veri(gecmissiz)["i"] == 9  # Eski olaylar tekrar gönderilmedi
+
+
 def test_video_izleyen_yoksa_kodlamaz(yayin):
     assert not yayin.video_izleniyor
     yayin.kare_yayinla(object())  # İzleyen yokken kare hiç dokunulmadan atlanır

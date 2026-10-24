@@ -177,6 +177,60 @@ def test_vucut_pozu():
     calistir("dersler/ders_16_vucut_pozu/vucut_pozu.py", "--kaynak", _ornek("poz.jpg"), "--kare-limiti", "60")
 
 
+def test_servis_betigi(el_videosu):
+    cikti = calistir("dersler/ders_17_servis/servis.py", "--kaynak", el_videosu, "--port", "0",
+                     "--yetenekler", "kontrol,yorgunluk,durus,mimik,nesne")
+    assert "servis.basladi" in cikti and "servis.durdu" in cikti and "servis.hata" not in cikti
+
+
+def test_servis_http_arayuzu(tmp_path):
+    """Servis arka planda çalışırken başka bir program gibi HTTP üzerinden bağlan."""
+    import http.client
+    import json
+    import time
+
+    from goru.servis import Servis, varsayilan_ayarlar
+
+    ayarlar = varsayilan_ayarlar()
+    ayarlar.update(kaynak=_ornek("zafer.jpg"), sadece_izle=True, kayit_klasoru=str(tmp_path))
+    ayarlar["http"]["port"] = 0
+    servis = Servis(ayarlar).baslat()
+    try:
+        for _ in range(100):
+            if servis.url and servis.kare_no > 10:
+                break
+            time.sleep(0.1)
+        port = int(servis.url.rsplit(":", 1)[1].strip("/"))
+
+        def iste(yontem, yol, govde=None):
+            baglanti = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            baglanti.request(yontem, yol, body=govde)
+            return baglanti.getresponse()
+
+        for _ in range(50):  # Durum saniyede bir yayınlanır: modeller yüklendikten sonrakini bekle
+            durum = json.loads(iste("GET", "/durum.json").read())
+            if durum.get("kare", 0) > 10:
+                break
+            time.sleep(0.2)
+        assert sorted(durum["yetenekler"]) == ["kontrol", "yorgunluk"] and durum["takipciler"] == ["el", "yuz"]
+        assert iste("GET", "/").status == 200  # Kontrol paneli
+
+        olaylar = iste("GET", "/olaylar")
+        time.sleep(0.3)
+        assert iste("POST", "/komut", json.dumps({"a": "yetenek_kapat", "ad": "yorgunluk"})).status == 204
+        assert iste("POST", "/komut", json.dumps({"a": "kapat_bilgisayari"})).status == 400
+        for _ in range(50):
+            satir = olaylar.readline().decode("utf-8")
+            if satir.startswith("data: ") and json.loads(satir[6:])["ad"] == "servis.yetenek":
+                break
+        else:
+            raise AssertionError("servis.yetenek olayı gelmedi")
+        assert "yorgunluk" not in servis.yetenekler
+    finally:
+        servis.durdur()
+    assert list(tmp_path.glob("olaylar_*.jsonl"))  # Olaylar diske de yazıldı
+
+
 def test_cimdik_karsilastirma(el_videosu):
     cikti = calistir("dersler/ders_05_guvenilir_cimdik/karsilastir.py", "--kaynak", el_videosu)
     assert "V2:" in cikti and "V3:" in cikti
