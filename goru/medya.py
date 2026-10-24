@@ -27,6 +27,7 @@ class MedyaKontrol:
         self.el = el
         self.sadece_izle = sadece_izle
         self.ses = ses if ses is not None else SesKontrol()
+        self.aktif = True  # Kontrol merkezinde sadece MEDYA modundayken True (Ders 8)
         self.ses_modu = False
         self.seviye = self.ses.seviye()
         self.son_eylem = "-"
@@ -35,7 +36,7 @@ class MedyaKontrol:
         yol.abone_ol("jest.kaydirma", self._kaydirma)
 
     def _jest_degisti(self, olay):
-        if olay.veri.get("el") != self.el:
+        if not self.aktif or olay.veri.get("el") != self.el:
             return
         jest = olay.veri["jest"]
         if jest == j.Jest.L_ISARETI.value:
@@ -47,7 +48,7 @@ class MedyaKontrol:
             self._eylem("sessiz ac/kapa", self.ses.sessiz_degistir)
 
     def _kaydirma(self, olay):
-        if olay.veri.get("el") != self.el:
+        if not self.aktif or olay.veri.get("el") != self.el:
             return
         if olay.veri["yon"] == "sag":
             self._eylem("sonraki parca", lambda: medya_tusu("nexttrack"))
@@ -56,13 +57,13 @@ class MedyaKontrol:
 
     def _eylem(self, ad, fonksiyon=None):
         self.son_eylem = ad
-        self.yol.yayinla("medya.eylem", ad=ad)
+        self.yol.yayinla("medya.eylem", eylem=ad)
         if fonksiyon and not self.sadece_izle:
             fonksiyon()
 
     def isle(self, el, zaman):
         """Her kare çağrılır. el: bu yeteneği yöneten el (görünmüyorsa None)."""
-        if el is None:
+        if el is None or not self.aktif:
             self.ses_modu = False
             self._filtre.sifirla()
             return

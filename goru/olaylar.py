@@ -35,7 +35,8 @@ class OlayYolu:
             if fonksiyon in self._aboneler.get(ad, []):
                 self._aboneler[ad].remove(fonksiyon)
 
-    def yayinla(self, ad, **veri):
+    def yayinla(self, ad, /, **veri):
+        # "/" sayesinde ad sadece konumla verilir; veri içinde "ad" adlı bir alan da kullanılabilir
         olay = Olay(ad, veri)
         with self._kilit:
             dinleyiciler = self._aboneler.get(ad, []) + self._aboneler.get(self.HEPSI, [])

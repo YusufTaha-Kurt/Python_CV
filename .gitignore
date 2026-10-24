@@ -10,3 +10,4 @@ build/
 *.jsonl
 tests/.veri/
 ayarlar/
+dersler/*/cizimler/

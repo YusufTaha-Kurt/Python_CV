@@ -92,8 +92,23 @@ def test_medya_ses_modu_ve_seviye():
 
 def test_medya_diger_elin_jestini_yok_sayar():
     yol = OlayYolu()
-    medya = MedyaKontrol(yol, el="sag", ses=SahteSes(), sadece_izle=True)
+    eylemler = []
+    yol.abone_ol("medya.eylem", eylemler.append)
+    ses = SahteSes()
+    medya = MedyaKontrol(yol, el="sag", ses=ses)
     yol.yayinla("jest.degisti", el="sol", jest="l_isareti")
     assert not medya.ses_modu
-    yol.yayinla("jest.degisti", el="sag", jest="basparmak_yukari")
-    assert medya.son_eylem == "oynat/duraklat"
+    yol.yayinla("jest.degisti", el="sag", jest="rock")
+    assert medya.son_eylem == "sessiz ac/kapa"
+    # Eylem gerçekten çalıştı ve olay yayınlandı (eskiden olay yayınlanırken hata çıkıp eylem atlanıyordu)
+    assert ses.sessiz == 1 and [o.veri for o in eylemler] == [{"eylem": "sessiz ac/kapa"}]
+
+
+def test_medya_pasifken_tepki_vermez():
+    yol = OlayYolu()
+    ses = SahteSes()
+    medya = MedyaKontrol(yol, el="sag", ses=ses)
+    medya.aktif = False
+    yol.yayinla("jest.degisti", el="sag", jest="rock")
+    yol.yayinla("jest.degisti", el="sag", jest="l_isareti")
+    assert ses.sessiz == 0 and not medya.ses_modu

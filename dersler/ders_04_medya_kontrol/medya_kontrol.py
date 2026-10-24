@@ -32,7 +32,7 @@ def main():
     args = ayrac.parse_args()
 
     yol = OlayYolu()
-    yol.abone_ol("medya.eylem", lambda olay: print(f"[MEDYA] {olay.veri['ad']}"))
+    yol.abone_ol("medya.eylem", lambda olay: print(f"[MEDYA] {olay.veri['eylem']}"))
     yayinci = j.JestYayincisi(yol, sure=0.35)
     medya = MedyaKontrol(yol, el=args.el, sadece_izle=args.sadece_izle)
     fps = hud.FpsSayaci()

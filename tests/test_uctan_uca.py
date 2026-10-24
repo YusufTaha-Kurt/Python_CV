@@ -92,6 +92,8 @@ def calistir(betik, *argumanlar, zaman_asimi=180):
         "dersler/ders_03_jest_merkezi/jest_merkezi.py",
         "dersler/ders_04_medya_kontrol/medya_kontrol.py",
         "dersler/ders_05_guvenilir_cimdik/fare_v3.py",
+        "dersler/ders_08_kontrol_merkezi/kontrol_merkezi.py",
+        "dersler/ders_08_kontrol_merkezi/hava_cizimi.py",
     ],
 )
 def test_el_dersleri(betik, el_videosu):

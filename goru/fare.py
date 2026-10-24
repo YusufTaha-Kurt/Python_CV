@@ -1,6 +1,12 @@
-"""Ders 5: Çimdik olaylarını fare tuşlarına çeviren durum makinesi ve fare arka uçları."""
+"""Ders 5: Elle fare kontrolü: tıklama durum makinesi, fare arka uçları ve ElFaresi."""
 
 import math
+
+import numpy as np
+
+from . import jestler as j
+from .cimdik import GuvenilirCimdik
+from .filtreler import OneEuroFiltre
 
 
 class PyAutoGuiFare:
@@ -123,3 +129,75 @@ class TiklamaMakinesi:
             self.fare.birak()
         self.durum = self.BOS
         self.donuk = False
+
+
+class ElFaresi:
+    """Bir elle tam fare: imleç, sol tık / çift tık / sürükleme, sağ tık.
+
+    Her kare `isle(el, zaman, kare_boyutu)` çağrılır. Kameranın ortasındaki sanal çalışma
+    alanı (kutu) bütün ekrana oranlanır, konum 1€ filtresinden geçer ve `surucu`
+    (goru.imlec.ImlecSurucu) imleci 144 Hz'de oraya akıtır.
+
+    surucu None ise imleç oynatılmaz (sadece izleme ve testler).
+    """
+
+    def __init__(self, fare, ayar=None, ekran=None, surucu=None, kutu_orani=0.18, imlec_noktasi="orta",
+                 surukleme_esigi=0.025):
+        if ekran is None:
+            import pyautogui
+
+            ekran = tuple(pyautogui.size())
+        self.fare = fare
+        self.ekran = ekran
+        self.surucu = surucu
+        self.kutu_orani = kutu_orani
+        self.imlec_noktasi = imlec_noktasi
+        self.sol = GuvenilirCimdik(j.ISARET_UCU, ayar)  # Başparmak + işaret: sol tuş
+        self.sag = GuvenilirCimdik(j.ORTA_UCU, ayar)  # Başparmak + orta: sağ tık
+        self.makine = TiklamaMakinesi(fare, surukleme_esigi * ekran[0])
+        self.filtre = OneEuroFiltre(min_kesim=0.6, beta=6.0)
+        self.kutu = None
+        self.hedef = None
+
+    def ayar_degistir(self, ayar):
+        self.sol.ayar = self.sag.ayar = ayar
+
+    @property
+    def cimdik_aktif(self):
+        return self.sol.aktif or self.sag.aktif
+
+    def isle(self, el, zaman, kare_boyutu):
+        genislik, yukseklik = kare_boyutu
+        kx, ky = int(genislik * self.kutu_orani), int(yukseklik * self.kutu_orani)
+        self.kutu = (kx, ky, genislik - kx, yukseklik - ky)
+        if el is None:
+            self.sifirla()
+            self.filtre.sifirla()
+            return None
+
+        n = el.noktalar
+        olay = self.sol.guncelle(n, zaman)
+        sag_olay = self.sag.guncelle(n, zaman)
+        if self.imlec_noktasi == "kok":
+            x, y = n[j.ISARET_KOK, :2]
+        else:  # Başparmak ile işaret ucunun ortası: çimdikte en sabit nokta
+            x, y = (n[j.BAS_UCU, :2] + n[j.ISARET_UCU, :2]) / 2
+        x1, y1, x2, y2 = self.kutu
+        nx, ny = np.clip((x - x1) / (x2 - x1), 0, 1), np.clip((y - y1) / (y2 - y1), 0, 1)
+        fx, fy = self.filtre((nx, ny), zaman)
+        self.hedef = (float(fx) * (self.ekran[0] - 1), float(fy) * (self.ekran[1] - 1))
+
+        donuk = self.makine.guncelle(olay, self.sol.kavrayabilir, self.hedef, zaman)
+        if self.surucu is not None:
+            self.surucu.dondur(donuk)
+            self.surucu.hedef_ayarla(*self.hedef)
+        if sag_olay == "basladi" and self.sag.kavrayabilir and self.makine.durum == TiklamaMakinesi.BOS:
+            self.fare.sag_tikla()
+        return olay
+
+    def sifirla(self):
+        self.makine.sifirla()
+        self.sol.sifirla()
+        self.sag.sifirla()
+        if self.surucu is not None:
+            self.surucu.dondur(False)

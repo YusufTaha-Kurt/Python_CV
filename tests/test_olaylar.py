@@ -16,6 +16,15 @@ def test_abone_ve_joker():
     assert [o.ad for o in hepsi] == ["jest.degisti", "el.kayboldu"]
 
 
+def test_veride_ad_alani_kullanilabilir():
+    """Regresyon: yayinla("x", ad=...) eskiden TypeError veriyordu ve hata sessizce yutuluyordu."""
+    yol = OlayYolu()
+    alinan = []
+    yol.abone_ol("medya.eylem", alinan.append)
+    yol.yayinla("medya.eylem", ad="oynat")
+    assert alinan[0].ad == "medya.eylem" and alinan[0].veri == {"ad": "oynat"}
+
+
 def test_hatali_abone_digerlerini_engellemez():
     yol = OlayYolu()
     alinan = []
