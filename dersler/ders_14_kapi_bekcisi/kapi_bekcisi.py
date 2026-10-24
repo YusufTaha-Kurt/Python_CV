@@ -39,11 +39,15 @@ RENKLER = {KILITLI: hud.KIRMIZI, DOGRULANIYOR: hud.TURUNCU, ACIK: hud.YESIL}
 
 
 def windows_kilitle():
+    """Windows oturumunu kilitler (Win+L ile aynı). Başka işletim sistemlerinde bir şey yapmaz."""
     if sys.platform == "win32":
         ctypes.windll.user32.LockWorkStation()
 
 
 def main():
+    """Ders akışı: yüz tanıma (Ders 12) kimleri gördüğünü söyler → KapiBekcisi durum makinesi
+    (KILITLI → DOGRULANIYOR → ACIK) canlılık testini (Ders 13) gerektiğinde çalıştırır →
+    olaylara abone fonksiyonlar kilitleme ve yabancı kaydı gibi eylemleri yapar."""
     ayrac = arguman_ayraci("Kapı Bekçisi")
     ayrac.add_argument("--sahip", nargs="*", help="Kapıyı açabilecek kişiler (varsayılan: tüm kayıtlılar)")
     ayrac.add_argument("--kilit-suresi", type=float, default=30.0, help="Sahip bu kadar saniye görünmezse kilitle")
@@ -64,10 +68,12 @@ def main():
     yol.abone_ol(OlayYolu.HEPSI, lambda o: print(f"[{time.strftime('%H:%M:%S')}] {o.ad} {o.veri}"))
 
     def kilitlendi(_):
+        """kapi.kilitlendi olayı: istenmişse Windows oturumunu da kilitler."""
         if args.windows_kilitle and not args.sadece_izle:
             windows_kilitle()
 
     def yabanci(_):
+        """kapi.yabanci olayı: istenmişse tanınmayan kişinin göründüğü kareyi guvenlik/ klasörüne kaydeder."""
         if args.yabanci_kaydet and son_kare["kare"] is not None:
             os.makedirs(GUVENLIK_KLASORU, exist_ok=True)
             yol_ = os.path.join(GUVENLIK_KLASORU, time.strftime("yabanci_%Y%m%d_%H%M%S.jpg"))
@@ -96,7 +102,7 @@ def main():
             if kapi.durum == DOGRULANIYOR:
                 mp_yuzler = yuz_takipci.isle(kare, simdi)
                 mp_yuz = mp_yuzler[0] if mp_yuzler else None
-            kapi.guncelle(kimlikler, mp_yuz, simdi)
+            kapi.guncelle(kimlikler, mp_yuz, simdi)  # durum makinesi burada ilerler
 
             for (x, y, g, h), isim in zip(kutular, kimlikler):
                 renk = hud.YESIL if isim in sahipler else hud.KIRMIZI

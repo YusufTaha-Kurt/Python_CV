@@ -33,6 +33,12 @@ KLASOR = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
+    """Servisi komut satırından başlatır. Sıra: ayar dosyasını oku → komut satırı seçenekleriyle üzerine yaz →
+    günlük dosyasını kur (döner, 1 MB x 3) → Servis'i çalıştır (Ctrl+C ile durur).
+
+    Bu dosya sadece bir başlatıcıdır; asıl iş goru/servis.py ve goru/yetenekler.py içindedir.
+    Başka bir uygulamaya eklemek için bu dosya gerekmez: `from goru.servis import Servis` yeter.
+    """
     ayrac = argparse.ArgumentParser(description="Python CV 7/24 servis")
     ayrac.add_argument("--ayarlar", default=os.path.join(KLASOR, "servis_ayarlari.json"))
     ayrac.add_argument("--kaynak", help="Kamera indeksi ya da video / görsel dosyası")
@@ -45,6 +51,7 @@ def main():
     ayrac.add_argument("--sessiz", action="store_true", help="Olayları konsola yazma")
     args = ayrac.parse_args()
 
+    # Öncelik: komut satırı > ayar dosyası > varsayılanlar
     ayarlar = ayarlari_yukle(args.ayarlar)
     if args.kaynak is not None:
         ayarlar["kaynak"] = int(args.kaynak) if args.kaynak.isdigit() else args.kaynak

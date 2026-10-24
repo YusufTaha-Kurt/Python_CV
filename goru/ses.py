@@ -1,4 +1,9 @@
-"""Sistem ses seviyesi ve medya tuşları."""
+"""Sistem ses seviyesi ve medya tuşları (Ders 4).
+
+Ses seviyesini doğrudan okumak/yazmak için Windows Core Audio arayüzü (pycaw kütüphanesi)
+kullanılır; "sesi %10 artır" tuşuna basmaktan çok daha hassastır. Oynat/sonraki gibi
+medya tuşları ise PyAutoGUI ile gönderilir.
+"""
 
 import sys
 
@@ -33,19 +38,24 @@ class SesKontrol:
 
     @property
     def destekleniyor(self):
+        """Ses seviyesi doğrudan okunup yazılabiliyor mu? (Windows + pycaw gerekir.)"""
         return self._hacim is not None
 
     def seviye(self):
+        """Sistem ses seviyesi, 0.0 (sessiz) - 1.0 (tam). Desteklenmiyorsa 0.0."""
         return float(self._hacim.GetMasterVolumeLevelScalar()) if self._hacim else 0.0
 
     def seviye_ayarla(self, oran):
+        """Sistem ses seviyesini 0.0 - 1.0 aralığında ayarlar (dışına taşan değer kırpılır)."""
         if self._hacim:
             self._hacim.SetMasterVolumeLevelScalar(min(max(oran, 0.0), 1.0), None)
 
     def sessiz_mi(self):
+        """Ses şu an kapalı mı?"""
         return bool(self._hacim.GetMute()) if self._hacim else False
 
     def sessiz_degistir(self):
+        """Sesi kapatır / açar. pycaw yoksa klavyenin "sessiz" tuşuna basar."""
         if self._hacim:
             self._hacim.SetMute(not self.sessiz_mi(), None)
         else:

@@ -30,6 +30,8 @@ KOK = os.path.dirname(os.path.dirname(KLASOR))
 
 
 def main():
+    """Masayı kurar: kartlar icerik/ klasöründeki .md dosyalarından gelir, bir 3D reaktör modeli eklenir.
+    Asıl döngü goru/hologram_uygulama.py içindeki `calistir`dadır (Ders 7 ile ortak)."""
     args = argumanlar_ekle(arguman_ayraci("Hologram Masası I")).parse_args()
     masa = Masa(ayarlar=CimdikAyarlari.yukle(os.path.join(KOK, "ayarlar", "cimdik.json")))
     icerik = os.path.join(KLASOR, "icerik")

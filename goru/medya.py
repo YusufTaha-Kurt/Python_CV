@@ -22,6 +22,14 @@ SES_MIN_ORAN, SES_MAX_ORAN = 0.25, 1.1
 
 
 class MedyaKontrol:
+    """Jest olaylarını medya eylemlerine bağlar.
+
+    İki çalışma biçimi vardır:
+        * Ayrık eylemler (oynat, parça değiştir, sessiz): olay yoluna abone olunarak çalışır.
+        * Sürekli eylem (ses seviyesi): her karede `isle()` ile güncellenir.
+    `sadece_izle=True` iken hiçbir tuşa basılmaz / ses değişmez, sadece olay yayınlanır.
+    """
+
     def __init__(self, yol, el="sag", sadece_izle=False, ses=None):
         self.yol = yol
         self.el = el
@@ -36,6 +44,7 @@ class MedyaKontrol:
         yol.abone_ol("jest.kaydirma", self._kaydirma)
 
     def _jest_degisti(self, olay):
+        """jest.degisti olayı: L → ses modu, başparmak yukarı → oynat/duraklat, rock → sessiz."""
         if not self.aktif or olay.veri.get("el") != self.el:
             return
         jest = olay.veri["jest"]
@@ -48,6 +57,7 @@ class MedyaKontrol:
             self._eylem("sessiz ac/kapa", self.ses.sessiz_degistir)
 
     def _kaydirma(self, olay):
+        """jest.kaydirma olayı: sağa → sonraki parça, sola → önceki parça."""
         if not self.aktif or olay.veri.get("el") != self.el:
             return
         if olay.veri["yon"] == "sag":
@@ -56,6 +66,7 @@ class MedyaKontrol:
             self._eylem("onceki parca", lambda: medya_tusu("prevtrack"))
 
     def _eylem(self, ad, fonksiyon=None):
+        """Eylemi duyurur (medya.eylem olayı) ve izleme modunda değilse gerçekten uygular."""
         self.son_eylem = ad
         self.yol.yayinla("medya.eylem", eylem=ad)
         if fonksiyon and not self.sadece_izle:

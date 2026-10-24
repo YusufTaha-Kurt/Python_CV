@@ -1,4 +1,11 @@
-"""Ders 9: MediaPipe Face Landmarker'ı saran yüz takip modülü (478 nokta + 52 ifade skoru)."""
+"""Ders 9: MediaPipe Face Landmarker'ı saran yüz takip modülü (478 nokta + 52 ifade skoru).
+
+Bir kare verirsin, her yüz için üç şey alırsın:
+    noktalar   478 nokta: göz, kaş, dudak, burun, yüz çizgisi ve iki göz bebeği (iris)
+    ifadeler   52 "blendshape" skoru (0-1): ağız açıklığı, gülümseme, kaş kaldırma, göz kırpma...
+               Yüz ifadesini sayıya çeviren hazır hâldir (Ders 10 ve 11 bunlara dayanır)
+    donusum    Yüzün kamera karşısındaki duruşunu veren 4x4 matris (Ders 9: baş açıları)
+"""
 
 import time
 from dataclasses import dataclass
@@ -18,6 +25,8 @@ IRIS_BAGLANTILARI = [(b.start, b.end) for b in _B.FACE_LANDMARKS_LEFT_IRIS + _B.
 
 @dataclass
 class Yuz:
+    """Tek bir yüzün o anki durumu."""
+
     noktalar: np.ndarray  # (478, 3): piksel cinsinden x, y ve göreli derinlik z
     ifadeler: dict  # Blendshape adı -> skor (0-1), örn. "jawOpen", "mouthSmileLeft"
     donusum: np.ndarray  # 4x4: kanonik yüz modelinden kamera koordinatına dönüşüm (None olabilir)
@@ -30,6 +39,8 @@ class Yuz:
 
 
 class YuzTakipci:
+    """Kareyi alır, bulunan yüzleri Yuz listesi olarak döndürür (ElTakipci ile aynı kullanım)."""
+
     def __init__(self, max_yuz=1, tespit_guveni=0.5, takip_guveni=0.5):
         secenekler = vision.FaceLandmarkerOptions(
             base_options=python.BaseOptions(model_asset_path=model_yolu("yuz")),
@@ -45,6 +56,7 @@ class YuzTakipci:
         self._son_zaman_ms = -1
 
     def isle(self, kare_bgr, zaman=None):
+        """zaman: karenin zamanı (sn). VIDEO modu kesin artan zaman damgası ister."""
         yukseklik, genislik = kare_bgr.shape[:2]
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(kare_bgr, cv2.COLOR_BGR2RGB))
         zaman_ms = max(int((time.monotonic() if zaman is None else zaman) * 1000), self._son_zaman_ms + 1)
@@ -60,6 +72,7 @@ class YuzTakipci:
         return yuzler
 
     def kapat(self):
+        """Modeli serbest bırakır."""
         self._dedektor.close()
 
     def __enter__(self):
@@ -70,6 +83,7 @@ class YuzTakipci:
 
 
 def yuz_ciz(kare, yuz, renk=(255, 220, 0)):
+    """Yüz çizgilerini ve göz bebeklerini kareye çizer."""
     n = yuz.noktalar
     for a, b in YUZ_KONTURLARI:
         cv2.line(kare, tuple(int(v) for v in n[a, :2]), tuple(int(v) for v in n[b, :2]), renk, 1, cv2.LINE_AA)

@@ -31,6 +31,8 @@ PALET = [(255, 200, 0), (80, 220, 80), (0, 165, 255), (230, 120, 255), (0, 220, 
 
 
 def main():
+    """Ders akışı (her karede): nesneleri bul → IoUTakipci kalıcı ID verir (yeni / kaybolan nesneler olay olur)
+    → işaret parmağı açıksa gösterdiği nesneyi bul → kutuları ve adları çiz."""
     ayrac = arguman_ayraci("Nesne Tespiti ve Takibi")
     ayrac.add_argument("--siniflar", help="Sadece bu COCO sınıfları (virgülle), örn. cup,bottle,cell phone")
     ayrac.add_argument("--esik", type=float, default=0.4, help="Tespit güven eşiği")
@@ -46,6 +48,7 @@ def main():
     app = Uygulama(args, "Nesne Tespiti")
     with NesneDedektoru(skor_esigi=args.esik, izinli=izinli) as dedektor, ElTakipci(max_el=1) as el_takipci:
         for kare, simdi in app.kareler():
+            # Dedektör her kareyi bağımsız görür; takipçi aynı nesneye aynı ID'yi verir
             izler = takipci.guncelle(dedektor.isle(kare, simdi))
             for iz in takipci.yeni:
                 yol.yayinla("nesne.goruldu", id=iz.id, nesne=TURKCE.get(iz.etiket, iz.etiket))

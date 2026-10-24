@@ -18,6 +18,8 @@ SOL_KALCA, SAG_KALCA = 23, 24
 SOL_DIZ, SAG_DIZ = 25, 26
 SOL_AYAK, SAG_AYAK = 27, 28
 
+# Egzersiz tanımı: hangi eklem açısına bakılır ve tekrar sayılması için hangi eşikler aşılmalı.
+# Yeni egzersiz eklemek için buraya bir satır yazmak yeter. Açı büyükse uzuv düzdür (180° = tam düz).
 EGZERSIZLER = {
     # eklem üçlüleri (her iki taraf), aşağı ve yukarı eşik açıları (derece)
     "squat": {"ad": "Squat", "eklemler": [(SOL_KALCA, SOL_DIZ, SOL_AYAK), (SAG_KALCA, SAG_DIZ, SAG_AYAK)],
@@ -37,7 +39,7 @@ def aci(a, b, c):
 
 
 def egzersiz_acisi(poz, egzersiz, gorunurluk_esigi=0.5):
-    """Daha iyi görünen taraftaki eklem açısı; iki taraf da görünmüyorsa None."""
+    """Egzersize ait eklem açısı (derece). Daha iyi görünen taraftaki eklem açısı; iki taraf da görünmüyorsa None."""
     en_iyi = None
     for a, b, c in EGZERSIZLER[egzersiz]["eklemler"]:
         gorunurluk = float(min(poz.gorunurluk[a], poz.gorunurluk[b], poz.gorunurluk[c]))
@@ -58,6 +60,7 @@ class TekrarSayaci:
         self.sayi = 0
 
     def guncelle(self, aci_):
+        """Açıyı ver; bu karede bir tekrar tamamlandıysa True döner. `sayi` toplam tekrarı tutar."""
         if aci_ is None:
             return False
         if self.faz == "yukari" and aci_ < self.asagi:
@@ -93,9 +96,11 @@ class DurusBekcisi:
         self._son_uyari = {"kambur": -math.inf, "egik_omuz": -math.inf}
 
     def kalibre_et(self):
+        """Dik oturuş duruşunu yeniden ölç (kullanıcı birkaç saniye dik oturmalı)."""
         self.taban, self._kalibrasyon, self._kal_baslangic = None, [], None
 
     def kalibrasyon_ilerlemesi(self, zaman):
+        """Kalibrasyonun tamamlanma oranı (0-1)."""
         if self.taban is not None:
             return 1.0
         return 0.0 if self._kal_baslangic is None else min(1.0, (zaman - self._kal_baslangic) / self.kalibrasyon_suresi)
@@ -108,6 +113,7 @@ class DurusBekcisi:
         }
 
     def guncelle(self, poz, zaman):
+        """Poz ver; verilmesi gereken uyarıların listesini döndür ("kambur", "egik_omuz")."""
         n, g = poz.noktalar, poz.gorunurluk
         if min(g[BURUN], g[SOL_OMUZ], g[SAG_OMUZ]) < 0.5:
             return []
@@ -147,6 +153,7 @@ class VucutJestleri:
 
     @staticmethod
     def tani(poz):
+        """Anlık jest: "eller_yukari", "t_pozu" ya da None."""
         n, g = poz.noktalar, poz.gorunurluk
         if min(g[SOL_BILEK], g[SAG_BILEK], g[SOL_OMUZ], g[SAG_OMUZ]) < 0.5:
             return None
@@ -160,6 +167,7 @@ class VucutJestleri:
         return None
 
     def guncelle(self, poz, zaman):
+        """Kararlı jest değiştiyse yeni jesti, değişmediyse None döndürür."""
         jest = self.tani(poz)
         if jest != self._aday:
             self._aday, self._aday_zamani = jest, zaman

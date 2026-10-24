@@ -15,6 +15,10 @@ from .kamera import Kamera
 
 
 def arguman_ayraci(aciklama):
+    """Her dersin kullandığı ortak komut satırı seçeneklerini hazırlar.
+
+    Dönen nesneye dersler kendi seçeneklerini ekler (örn. `--el`), sonra `parse_args()` çağrılır.
+    """
     ayrac = argparse.ArgumentParser(description=aciklama)
     ayrac.add_argument("--kaynak", default="0", help="Kamera indeksi (0, 1, ...) ya da video / görsel dosyası")
     ayrac.add_argument("--pencere-yok", action="store_true", help="Görüntü penceresi açma")
@@ -41,6 +45,11 @@ class Uygulama:
         self._cikis = False
 
     def kareler(self):
+        """Kamera/video bitene ya da kullanıcı çıkana kadar `(kare, zaman)` verir.
+
+        `zaman` saniye cinsindendir. Videoda gerçek saat değil kare numarası/FPS'tir, böylece
+        kayıt hangi hızda işlenirse işlensin filtreler ve süre sayaçları aynı sonucu verir.
+        """
         try:
             while not self._cikis:
                 if self.args.kare_limiti is not None and self.kare_no >= self.args.kare_limiti:
@@ -66,9 +75,11 @@ class Uygulama:
         return self.son_tus
 
     def cik(self):
+        """Döngüyü bir sonraki kareden önce bitirir (derslerin kendi çıkış tuşları için)."""
         self._cikis = True
 
     def kapat(self):
+        """Kamerayı ve pencereleri serbest bırakır. Birden çok kez çağrılması zararsızdır."""
         if self.kamera is None:
             return
         self.kamera.kapat()

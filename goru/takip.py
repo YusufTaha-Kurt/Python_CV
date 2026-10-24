@@ -28,6 +28,8 @@ def iou(a, b):
 
 @dataclass
 class Iz:
+    """Takip edilen bir nesnenin kaydı. `kayip`: art arda kaç karedir eşleşmedi."""
+
     id: int
     kutu: np.ndarray
     etiket: str
@@ -38,6 +40,11 @@ class Iz:
 
 
 class IoUTakipci:
+    """Her karede `guncelle(tespitler)` çağır; kalıcı kimlikli (ID) nesne listesi al.
+
+    `.yeni` o karede ilk kez kesinleşen, `.biten` kaybolan nesneleri verir (olay üretmek için).
+    """
+
     def __init__(self, iou_esigi=0.3, max_kayip=15, min_gorulme=3):
         self.iou_esigi = iou_esigi
         self.max_kayip = max_kayip
@@ -50,8 +57,10 @@ class IoUTakipci:
     def guncelle(self, tespitler):
         """tespitler: .kutu, .etiket, .skor alanları olan nesneler. Dönüş: görünür, kesin izler."""
         self.yeni, self.biten = [], []
+        # 1) Tahmin: her izi son hızıyla bir kare ileri taşı
         tahminler = [iz.kutu + iz.hiz for iz in self.izler]
 
+        # 2) Eşleştirme: en yüksek IoU'dan başlayarak açgözlü eşle (her iz / tespit en çok bir kez)
         ciftler = sorted(
             ((iou(tahmin, t.kutu), i, k) for i, (iz, tahmin) in enumerate(zip(self.izler, tahminler))
              for k, t in enumerate(tespitler) if iz.etiket == t.etiket),
@@ -72,6 +81,7 @@ class IoUTakipci:
             if iz.gorulme == self.min_gorulme:
                 self.yeni.append(iz)
 
+        # 3) Eşleşmeyen izleri birkaç kare yaşat, yeni tespitlere yeni ID ver
         kalan = []
         for i, iz in enumerate(self.izler):
             if i not in eslesen_iz:

@@ -29,6 +29,8 @@ KOK = os.path.dirname(os.path.dirname(KLASOR))
 
 
 def main():
+    """Ders 6'nın masasına pençe (uzaktan çekme) ve alkış (toparlama) özelliklerini açar, ikinci bir model ekler.
+    Masa olayları (hologram.tutuldu, hologram.cekildi, hologram.alkis...) olay yoluna yayınlanır."""
     ayrac = argumanlar_ekle(arguman_ayraci("Hologram Masası II"))
     ayrac.add_argument("--piramit", action="store_true", help="Pepper's ghost piramit görünümüyle aç")
     args = ayrac.parse_args()

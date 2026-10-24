@@ -1,4 +1,17 @@
-"""MediaPipe Hand Landmarker'ı saran el takip modülü."""
+"""MediaPipe Hand Landmarker'ı saran el takip modülü (Ders 1-2).
+
+Bir kare verirsin, karedeki her el için 21 işaret noktası alırsın. Her parmağın 4 noktası
+vardır (kök → uç): önce kök eklem, sonra iki orta eklem (PIP, DIP), en son parmak ucu.
+
+    0          bilek
+    1-4        başparmak    (uç = 4)
+    5-8        işaret       (uç = 8)
+    9-12       orta         (uç = 12)
+    13-16      yüzük        (uç = 16)
+    17-20      serçe        (uç = 20)
+
+Bütün jest, çimdik ve fare mantığı bu 21 noktanın piksel koordinatları üzerine kurulur.
+"""
 
 import time
 from dataclasses import dataclass
@@ -21,6 +34,8 @@ AYNASIZ_TARAF = {"Left": "sol", "Right": "sag"}
 
 @dataclass
 class El:
+    """Tek bir elin o anki durumu. `taraf` fiziksel eldir (ayna düzeltmesi yapılmıştır)."""
+
     noktalar: np.ndarray  # (21, 3): piksel cinsinden x, y ve göreli derinlik z
     taraf: str  # "sag" / "sol" (kullanıcının kendi bakış açısından fiziksel el)
     skor: float
@@ -70,6 +85,7 @@ class ElTakipci:
         return eller
 
     def kapat(self):
+        """Modeli serbest bırakır (`with ElTakipci() as t:` kullanırsan otomatik yapılır)."""
         self._dedektor.close()
 
     def __enter__(self):

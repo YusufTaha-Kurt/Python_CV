@@ -13,13 +13,22 @@ from dataclasses import asdict, dataclass, field
 
 @dataclass
 class Olay:
+    """Yayınlanan tek bir olay: ne olduğu (`ad`), ayrıntıları (`veri`) ve ne zaman (`zaman`, epoch sn)."""
+
     ad: str  # örn. "jest.degisti", "jest.kaydirma", "el.kayboldu"
     veri: dict = field(default_factory=dict)
     zaman: float = field(default_factory=time.time)
 
 
 class OlayYolu:
-    HEPSI = "*"
+    """Basit yayınla / abone ol (publish-subscribe) mekanizması. Thread güvenlidir.
+
+        yol = OlayYolu()
+        yol.abone_ol("jest.degisti", lambda olay: print(olay.veri))
+        yol.yayinla("jest.degisti", el="sag", jest="yumruk")
+    """
+
+    HEPSI = "*"  # abone_ol("*", ...) ile her olay dinlenir (günlükleme, HTTP akışı için)
 
     def __init__(self):
         self._aboneler = {}
@@ -31,11 +40,13 @@ class OlayYolu:
             self._aboneler.setdefault(ad, []).append(fonksiyon)
 
     def abonelikten_cik(self, ad, fonksiyon):
+        """`abone_ol` ile kaydedilmiş fonksiyonu kaldırır."""
         with self._kilit:
             if fonksiyon in self._aboneler.get(ad, []):
                 self._aboneler[ad].remove(fonksiyon)
 
     def yayinla(self, ad, /, **veri):
+        """Olayı bütün abonelerine sırayla iletir ve Olay nesnesini döndürür."""
         # "/" sayesinde ad sadece konumla verilir; veri içinde "ad" adlı bir alan da kullanılabilir
         olay = Olay(ad, veri)
         with self._kilit:
@@ -66,4 +77,5 @@ class JsonlKaydedici:
             self._dosya.flush()
 
     def kapat(self):
+        """Dosyayı kapatır."""
         self._dosya.close()

@@ -18,12 +18,15 @@ FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
 class FpsSayaci:
+    """Saniyedeki kare sayısını ölçer. Üstel ortalama sayesinde ekranda sayı zıplamaz."""
+
     def __init__(self, yumusatma=0.9):
         self._yumusatma = yumusatma
         self._onceki = None
         self.fps = 0.0
 
     def tik(self):
+        """Her karede bir kez çağır; yumuşatılmış FPS değerini döndürür."""
         simdi = time.perf_counter()
         if self._onceki is not None:
             anlik = 1.0 / max(simdi - self._onceki, 1e-6)
@@ -33,6 +36,7 @@ class FpsSayaci:
 
 
 def iskelet_ciz(kare, noktalar, renk=CAMGOBEGI):
+    """Elin 21 noktasını ve aralarındaki kemik çizgilerini kareye çizer."""
     for a, b in EL_BAGLANTILARI:
         pa = tuple(int(v) for v in noktalar[a, :2])
         pb = tuple(int(v) for v in noktalar[b, :2])

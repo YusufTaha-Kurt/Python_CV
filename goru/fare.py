@@ -1,4 +1,13 @@
-"""Ders 5: Elle fare kontrolü: tıklama durum makinesi, fare arka uçları ve ElFaresi."""
+"""Ders 5: Elle fare kontrolü: tıklama durum makinesi, fare arka uçları ve ElFaresi.
+
+Üç katman vardır, aşağıdan yukarıya:
+    PyAutoGuiFare / SahteFare   Fareyi gerçekten oynatan ya da sadece kaydeden "arka uç".
+    TiklamaMakinesi             Çimdik olaylarını sol tuş basma / bırakma / tıklamaya çevirir.
+    ElFaresi                    El noktalarını ekran koordinatına çevirip hepsini birleştirir.
+
+Fare arka ucu dışarıdan verildiği için aynı kod hem gerçek fareyle hem `--sadece-izle`
+modunda hem de testlerde çalışır.
+"""
 
 import math
 
@@ -10,7 +19,11 @@ from .filtreler import OneEuroFiltre
 
 
 class PyAutoGuiFare:
-    """Gerçek fare (işletim sistemi seviyesinde)."""
+    """Gerçek fare (işletim sistemi seviyesinde).
+
+    Arka uç arayüzü (SahteFare ile aynı): bas() / birak() sol tuşu basılı tutar-bırakır,
+    tikla() tek sol tık, sag_tikla() sağ tık, kaydir(miktar) tekerlek (+ yukarı).
+    """
 
     def __init__(self):
         import pyautogui
@@ -36,13 +49,17 @@ class PyAutoGuiFare:
 
 
 class SahteFare:
-    """Hiçbir şeye dokunmaz, eylemleri kaydeder (--sadece-izle ve testler için)."""
+    """Hiçbir şeye dokunmaz, eylemleri `eylemler` listesine kaydeder (--sadece-izle ve testler için).
+
+    PyAutoGuiFare ile aynı arayüze sahiptir, bu yüzden ikisi birbirinin yerine kullanılabilir.
+    """
 
     def __init__(self, yazdir=False):
         self.eylemler = []
         self._yazdir = yazdir
 
     def _kaydet(self, eylem):
+        """Eylemi listeye ekler (ve istenmişse konsola yazar)."""
         self.eylemler.append(eylem)
         if self._yazdir:
             print(f"[FARE] {eylem}")
@@ -92,7 +109,10 @@ class TiklamaMakinesi:
         self._birakma = -math.inf
 
     def guncelle(self, olay, kavrayabilir, hedef, zaman):
-        """olay: GuvenilirCimdik olayı, hedef: imlecin gitmek istediği nokta (ekran px)."""
+        """olay: GuvenilirCimdik olayı, hedef: imlecin gitmek istediği nokta (ekran px).
+
+        İmlecin donuk olup olmadığını döndürür; donukken ImlecSurucu imleci yerinde tutar.
+        """
         if (olay == "basladi" and kavrayabilir) or olay == "iyilesti":
             if self.durum == self.BOS:
                 self.durum = self.BEKLEMEDE
@@ -125,6 +145,7 @@ class TiklamaMakinesi:
         return self.donuk
 
     def sifirla(self):
+        """El kaybolduysa basılı kalmış tuşu bırakır (fare "yapışık" kalmasın)."""
         if self.durum == self.BASILI:
             self.fare.birak()
         self.durum = self.BOS
@@ -160,14 +181,19 @@ class ElFaresi:
         self.hedef = None
 
     def ayar_degistir(self, ayar):
+        """Çalışırken çimdik eşiklerini değiştirir (örnekleyicinin önerisini uygularken)."""
         self.sol.ayar = self.sag.ayar = ayar
 
     @property
     def cimdik_aktif(self):
+        """Sol ya da sağ çimdik şu an sürüyor mu?"""
         return self.sol.aktif or self.sag.aktif
 
     def isle(self, el, zaman, kare_boyutu):
+        """Her karede çağır. `el` yoksa None ver. Çimdik olayını (ya da None) döndürür."""
         genislik, yukseklik = kare_boyutu
+        # Kameranın kenarlarına kadar uzanmak yorucu: ortadaki küçültülmüş "çalışma kutusu"
+        # bütün ekrana eşlenir. Kutu kenarına varınca imleç ekran kenarına varır.
         kx, ky = int(genislik * self.kutu_orani), int(yukseklik * self.kutu_orani)
         self.kutu = (kx, ky, genislik - kx, yukseklik - ky)
         if el is None:
@@ -176,17 +202,20 @@ class ElFaresi:
             return None
 
         n = el.noktalar
+        # 1) Güvenilir çimdik algılayıcıları: işaret = sol tuş, orta parmak = sağ tık
         olay = self.sol.guncelle(n, zaman)
         sag_olay = self.sag.guncelle(n, zaman)
         if self.imlec_noktasi == "kok":
             x, y = n[j.ISARET_KOK, :2]
         else:  # Başparmak ile işaret ucunun ortası: çimdikte en sabit nokta
             x, y = (n[j.BAS_UCU, :2] + n[j.ISARET_UCU, :2]) / 2
+        # 2) Kare pikselini 0-1 aralığına, sonra filtreleyip ekran pikseline çevir
         x1, y1, x2, y2 = self.kutu
         nx, ny = np.clip((x - x1) / (x2 - x1), 0, 1), np.clip((y - y1) / (y2 - y1), 0, 1)
         fx, fy = self.filtre((nx, ny), zaman)
         self.hedef = (float(fx) * (self.ekran[0] - 1), float(fy) * (self.ekran[1] - 1))
 
+        # 3) Tıklama makinesi karar verir; tıklama anında imleç kaymasın diye dondurulur
         donuk = self.makine.guncelle(olay, self.sol.kavrayabilir, self.hedef, zaman)
         if self.surucu is not None:
             self.surucu.dondur(donuk)
@@ -196,6 +225,7 @@ class ElFaresi:
         return olay
 
     def sifirla(self):
+        """El kaybolduğunda her şeyi bırakır: basılı tuş, çimdik durumları, dondurulmuş imleç."""
         self.makine.sifirla()
         self.sol.sifirla()
         self.sag.sifirla()

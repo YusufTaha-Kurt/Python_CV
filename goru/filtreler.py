@@ -1,4 +1,10 @@
-"""Titreşim giderme filtreleri."""
+"""Titreşim giderme filtreleri (Ders 2).
+
+Kameradan gelen nokta konumları sensör gürültüsü yüzünden her karede birkaç piksel titrer.
+Bu titreme doğrudan imlece yansırsa imleç elin sabit dururken bile "karıncalanır".
+Çözüm: konumu yumuşatmak. Ama yumuşatma gecikme demektir; hızlı harekette imleç elin
+arkasında kalır. Bu dosyadaki filtre bu ikilemi hıza göre ayarlanan yumuşatmayla çözer.
+"""
 
 import math
 
@@ -6,6 +12,12 @@ import numpy as np
 
 
 def _alfa(kesim_frekansi, dt):
+    """Kesim frekansını (Hz) üstel yumuşatma katsayısına (0-1) çevirir.
+
+    Yeni değerin sonuca katılma oranıdır: 1'e yakınsa filtre neredeyse yok, 0'a yakınsa
+    çok güçlü yumuşatma var. `dt` (iki kare arası süre) hesaba katıldığı için FPS
+    dalgalansa da filtre aynı davranır.
+    """
     tau = 1.0 / (2 * math.pi * kesim_frekansi)
     return 1.0 / (1.0 + tau / dt)
 
@@ -29,11 +41,13 @@ class OneEuroFiltre:
         self.sifirla()
 
     def sifirla(self):
+        """Geçmişi unutur. El kaybolup tekrar göründüğünde eski konuma doğru "süzülmesin" diye çağır."""
         self._onceki_deger = None
         self._onceki_turev = None
         self._onceki_zaman = None
 
     def __call__(self, deger, zaman):
+        """Ham değeri (sayı ya da numpy dizisi) ve zamanı (sn) alır, yumuşatılmış değeri döndürür."""
         deger = np.asarray(deger, dtype=np.float64)
         if self._onceki_deger is None:
             self._onceki_deger = deger

@@ -27,11 +27,14 @@ from goru.uygulama import Uygulama, arguman_ayraci
 
 
 def main():
+    """Ders akışı: JestYayincisi jest olaylarını yayınlar → MedyaKontrol bu olaylara abone olup
+    medya tuşlarına basar; ses seviyesi gibi SÜREKLİ kontroller ise her karede `isle()` ile güncellenir."""
     ayrac = arguman_ayraci("Medya ve Ses Kontrolü")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag")
     args = ayrac.parse_args()
 
     yol = OlayYolu()
+    # medya.eylem olayını sadece konsola yazıyoruz; başka bir uygulama da aynı olaya abone olabilir
     yol.abone_ol("medya.eylem", lambda olay: print(f"[MEDYA] {olay.veri['eylem']}"))
     yayinci = j.JestYayincisi(yol, sure=0.35)
     medya = MedyaKontrol(yol, el=args.el, sadece_izle=args.sadece_izle)

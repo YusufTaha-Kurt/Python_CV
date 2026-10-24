@@ -60,7 +60,7 @@ def pnp_acilari(noktalar, kare_boyutu):
 
 
 def yuz_acilari(yuz, kare_boyutu=None):
-    """Yüzün açıları: dönüşüm matrisi varsa onu, yoksa solvePnP'yi kullanır."""
+    """(yaw, pitch, roll) derece. Yüzün açıları: dönüşüm matrisi varsa onu, yoksa solvePnP'yi kullanır."""
     if yuz.donusum is not None:
         return matris_acilari(yuz.donusum)
     return pnp_acilari(yuz.noktalar, kare_boyutu)

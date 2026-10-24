@@ -8,6 +8,8 @@ from . import jestler as j
 
 
 class ModSecici:
+    """Hangi modun (FARE / MEDYA / PENCERE) etkin olduğunu tutar ve diğer elin parmak sayısından değiştirir."""
+
     def __init__(self, modlar, yol=None, sure=0.6):
         self.modlar = list(modlar)
         self.mod = self.modlar[0]

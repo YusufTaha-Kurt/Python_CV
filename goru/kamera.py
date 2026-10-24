@@ -64,6 +64,7 @@ class Kamera:
             self._video_fps = self._video.get(cv2.CAP_PROP_FPS) or 30.0
 
     def _kamera_ac(self):
+        """Kamerayı en iyi ayarlarla açar; açılamazsa None döner (yeniden bağlanma döngüsü tekrar dener)."""
         # Windows'ta DirectShow hem daha hızlı açılır hem de MJPG (yüksek FPS) destekler
         api = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
         kamera = cv2.VideoCapture(self.kaynak, api)
@@ -81,6 +82,7 @@ class Kamera:
         return kamera
 
     def _oku_dongusu(self):
+        """Arka plan iş parçacığı: sürekli kare okur, sadece en güncelini saklar, kopmada yeniden bağlanır."""
         while not self._durdur.is_set():
             basarili, kare = self._kamera.read() if self._kamera is not None else (False, None)
             if basarili:
@@ -135,6 +137,7 @@ class Kamera:
         return cv2.flip(kare, 1) if self.ayna else kare
 
     def kapat(self):
+        """Kaynağı ve arka plan okuma iş parçacığını kapatır. Birden çok çağrılabilir."""
         if hasattr(self, "_durdur"):  # Canlı kamera: önce okuma thread'ini durdur, sonra bırak
             self._durdur.set()
             self._thread.join(timeout=YENIDEN_BAGLANMA_ARALIGI + 1)

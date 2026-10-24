@@ -25,12 +25,14 @@ class BeklemeTiklayici:
         self.sifirla()
 
     def sifirla(self):
+        """Sayacı sıfırlar (imleç yer değiştirince otomatik çağrılır)."""
         self.ilerleme = 0.0
         self._merkez = None
         self._baslangic = 0.0
         self._tiklandi = False
 
     def guncelle(self, nokta, zaman):
+        """İmleç konumunu (px) verir. Tıklama zamanı geldiyse True döner. `ilerleme` (0-1) ekranda halka için kullanılır."""
         if self._merkez is None or math.dist(nokta, self._merkez) > self.yaricap:
             self._merkez, self._baslangic, self._tiklandi, self.ilerleme = nokta, zaman, False, 0.0
             return False
@@ -59,9 +61,11 @@ class BasFaresi:
 
     @property
     def kalibre(self):
+        """Nötr baş pozu ölçüldü mü?"""
         return self.merkez is not None
 
     def kalibrasyon_ilerlemesi(self, zaman):
+        """Kalibrasyonun tamamlanma oranı (0-1)."""
         if self.kalibre:
             return 1.0
         if self._kal_baslangic is None:
@@ -75,6 +79,8 @@ class BasFaresi:
 
     def isle(self, yaw, pitch, zaman):
         """Açılar (derece) -> ekran hedefi (px). Kalibrasyon sürerken None."""
+        # Kalibrasyon: ilk saniyelerde ekranın ortasına bakılırken açıların MEDYANI "merkez" olur
+        # (ortalama değil medyan: göz kırpma anındaki sapmalar sonucu bozmasın)
         if not self.kalibre:
             if self._kal_baslangic is None:
                 self._kal_baslangic = zaman
@@ -83,6 +89,7 @@ class BasFaresi:
                 self.merkez = (statistics.median(o[0] for o in self._ornekler),
                                statistics.median(o[1] for o in self._ornekler))
             return None
+        # Merkezden sapma → 0-1 ekran oranı. 0.5 = ekranın ortası; ±açı aralığı kenarlara karşılık gelir
         yaw0, pitch0 = self.merkez
         nx = np.clip(0.5 + (yaw - yaw0) / (2 * self.yaw_araligi), 0, 1)
         ny = np.clip(0.5 - (pitch - pitch0) / (2 * self.pitch_araligi), 0, 1)  # Yukarı bakınca imleç yukarı

@@ -31,6 +31,7 @@ UYARILAR = {"kambur": "DIK OTUR", "egik_omuz": "OMUZLARINI DUZELT"}
 
 
 def bip():
+    """Sesli uyarı, döngüyü bekletmeden (sadece Windows)."""
     if sys.platform == "win32":
         import winsound
 
@@ -38,6 +39,8 @@ def bip():
 
 
 def main():
+    """Ders akışı (her karede): vücut noktalarını bul → seçilen egzersizin eklem açısını ölç → tekrar say →
+    duruş bekçisi kambur / eğik omuzu izle → iki el yukarı / T pozu gibi vücut jestlerini tanı."""
     ayrac = arguman_ayraci("Vücut Pozu")
     ayrac.add_argument("--egzersiz", choices=sorted(EGZERSIZLER), default="squat")
     ayrac.add_argument("--alarm", action="store_true", help="Duruş uyarısında ses çal")
@@ -61,6 +64,7 @@ def main():
             if pozlar:
                 poz = pozlar[0]
                 poz_ciz(kare, poz)
+                # Açı eşiklerin altına inip tekrar üstüne çıkınca 1 tekrar sayılır
                 aci_ = egzersiz_acisi(poz, args.egzersiz)
                 if sayac.guncelle(aci_):
                     yol.yayinla("egzersiz.tekrar", egzersiz=args.egzersiz, sayi=sayac.sayi)

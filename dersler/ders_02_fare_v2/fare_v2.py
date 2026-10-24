@@ -41,12 +41,15 @@ CIFT_TIK_PENCERESI = 0.3  # Bıraktıktan sonra imlecin donuk kalacağı süre (
 
 
 def argumanlar():
+    """Ortak seçeneklere (--kaynak, --sadece-izle...) bu derse özel `--el` seçeneğini ekler."""
     ayrac = arguman_ayraci("El Kontrollü Fare V2")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag", help="Fareyi yönetecek el")
     return ayrac.parse_args()
 
 
 def main():
+    """Ders akışı (her karede): el bul → yumruksa uyku modunu çevir → imleci hedefle →
+    çimdikle tuşa bas / bırak → sağ tık → ekrana geri bildirim çiz."""
     args = argumanlar()
     ekran_genisligi, ekran_yuksekligi = pyautogui.size()
     surukleme_esigi_px = SURUKLEME_ESIGI * ekran_genisligi
@@ -67,6 +70,7 @@ def main():
     jest = j.Jest.BILINMIYOR
 
     def fare_birak():
+        """Basılı fare tuşunu bırakır ve imleç / çimdik durumunu sıfırlar (el kaybolunca ya da uykuya geçince)."""
         nonlocal basili_tutuluyor_mu
         if basili_tutuluyor_mu and not args.sadece_izle:
             pyautogui.mouseUp(_pause=False)

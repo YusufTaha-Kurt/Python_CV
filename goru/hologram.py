@@ -8,6 +8,15 @@ Ders 6:  tut-taşı, dokun (kartı aç / modeli patlat), fırlat, iki elle ölç
          modeli tutup bekleyince döndür, boş çimdikle sürükleyerek patlat
 Ders 7:  pençe ile uzaktan çekme, alkışla masayı toparlama
 
+Okuma sırası (dosyayı yukarıdan aşağı okursan mantık kendini anlatır):
+    Sabitler          Eşikler ve süreler; hepsi kare genişliğine oranlı, böylece çözünürlükten bağımsız
+    Nesne             Masadaki bir kart / görsel / 3D model
+    _El, _Pence       Her el için tutulan durum (çimdik algılayıcı, filtre, tutulan nesne...)
+    Masa.guncelle     Ana döngü: her karede elleri işler, sonra iki el ölçeği, alkış ve fiziği çalıştırır
+    Ders 6 bölümü     _kavra → _tasi → _birak (fırlat / dokun), _kazi (patlat), _iki_el_olcekle, _fizik
+    Ders 7 bölümü     _pence (nişan, gerilim, çekme), _cekilenler, _alkis
+    Masa.durum        Tarayıcıya giden JSON (tarayıcı sadece çizer)
+
 Etkileşim fikirleri barehands projesinden (jaredrhod, AGPL-3.0) esinlenmiştir; kod bu repo
 için yeniden yazılmıştır. Ayrıntılar: docs/referanslar/barehands_analizi.md
 """
@@ -46,6 +55,12 @@ ALKIS_BEKLEME = 1.5
 
 @dataclass
 class Nesne:
+    """Masadaki tek bir şey: kart, görsel ya da 3D model. Konumlar kamera pikselidir.
+
+    `mod`: serbest (fizik işliyor) | tasi (bir el taşıyor) | don (döndürülüyor) |
+    olcek (iki el büyütüyor) | cekiliyor (pençeyle ele uçuyor) | elde (pençeyle tutuluyor).
+    """
+
     id: int
     tur: str  # "kart" | "gorsel" | "model"
     x: float
@@ -71,17 +86,21 @@ class Nesne:
     _olcek0: tuple = (1.0, 1.0)
 
     def etiket(self):
+        """Olaylarda ve mesajlarda gösterilen ad."""
         return self.baslik or self.kaynak or self.tur
 
     def boyut(self):
+        """(genişlik, yükseklik) piksel. Ölçekle çarpılır; açık kart 2 kat uzar."""
         uzama = 2.0 if (self.tur == "kart" and self.acik) else 1.0
         return self.genislik * self.olcek, self.yukseklik * self.olcek * uzama
 
     def sinir(self):
+        """Çarpışma kutusu: (sol, üst, sağ, alt)."""
         g, y = self.boyut()
         return self.x - g / 2, self.y - y / 2, self.x + g / 2, self.y + y / 2
 
     def json(self):
+        """Tarayıcıya gönderilen sade sözlük (sayılar yuvarlanır, trafik küçük kalır)."""
         g, y = self.boyut()
         return {
             "id": self.id, "tur": self.tur, "x": round(self.x, 1), "y": round(self.y, 1),
@@ -93,6 +112,8 @@ class Nesne:
 
 
 class _Pence:
+    """Bir elin pençe durumu: faz 0 = boşta, faz 1 = kuruldu ve nişan alıyor."""
+
     def __init__(self):
         self.faz = 0  # 0: boşta, 1: kurulu (nişan alıyor)
         self.poz = 0  # Pençe pozunun art arda görüldüğü kare sayısı (kaybedince 5 düşer)
@@ -104,6 +125,8 @@ class _Pence:
 
 
 class _El:
+    """Masanın bir el için tuttuğu her şey. `Masa._eller` içinde "sag" / "sol" anahtarıyla durur."""
+
     def __init__(self, ayar):
         self.cimdik = GuvenilirCimdik(j.ISARET_UCU, ayar)
         self.filtre = OneEuroFiltre(min_kesim=1.0, beta=6.0)
@@ -147,6 +170,13 @@ def pence_pozu(n, icinde=False):
 
 
 class Masa:
+    """Hologram masasının beyni: nesneleri ve elleri tutar, her karede etkileşimi çözer.
+
+    Kamera ve tarayıcıdan bağımsızdır: `guncelle(eller, zaman)` ile sentetik ellerle de
+    sürülebilir (testler böyle yapar). `pence` / `alkis` Ders 7 özelliklerini açar.
+    `yol` verilirse `hologram.*` olayları OlayYolu'na yayınlanır.
+    """
+
     def __init__(self, genislik=1280, yukseklik=720, ayarlar=None, pence=False, alkis=False, yol=None):
         self.w, self.h = genislik, yukseklik
         self.ayar = ayarlar or CimdikAyarlari()
@@ -166,6 +196,7 @@ class Masa:
     # --- İçerik ---
 
     def _ekle(self, nesne, x, y):
+        """Nesneyi masaya koyar; konum verilmediyse sıradaki boş yuvaya (4x2 ızgara) yerleştirir."""
         if x is None or y is None:
             x, y = self._siradaki_yuva()
         nesne.x, nesne.y, nesne.ev = x, y, (x, y)
@@ -173,23 +204,28 @@ class Masa:
         return nesne
 
     def _siradaki_yuva(self):
+        """Izgaradaki bir sonraki boş yerin (x, y) pikseli."""
         i = self._yuva
         self._yuva += 1
         return self.w * (0.16 + 0.226 * (i % 4)), self.h * (0.24 + 0.46 * ((i // 4) % 2))
 
     def _yeni_id(self):
+        """Her nesneye benzersiz numara verir."""
         self._sonraki_id += 1
         return self._sonraki_id - 1
 
     def kart_ekle(self, baslik, govde="", x=None, y=None):
+        """Metin kartı ekler."""
         g = 0.2 * self.w
         return self._ekle(Nesne(self._yeni_id(), "kart", 0, 0, g, g * 0.62, baslik=baslik, govde=govde), x, y)
 
     def gorsel_ekle(self, kaynak, baslik="", x=None, y=None):
+        """Görsel kartı ekler. `kaynak`: tarayıcının açabileceği adres (örn. /icerik/resim.png)."""
         g = 0.2 * self.w
         return self._ekle(Nesne(self._yeni_id(), "gorsel", 0, 0, g, g * 0.75, baslik=baslik, kaynak=kaynak), x, y)
 
     def model_ekle(self, tur="reaktor", x=None, y=None, boyut=0.17):
+        """3D model ekler ("reaktor" ya da "kup"). Modeli tarayıcıdaki sahne.js çizer."""
         g = boyut * self.w
         return self._ekle(Nesne(self._yeni_id(), "model", 0, 0, g, g, baslik=tur, kaynak=tur), x, y)
 
@@ -235,9 +271,11 @@ class Masa:
     # --- Olaylar ---
 
     def _mesaj(self, metin):
+        """Ekranda 2.5 saniye görünen kısa bilgi mesajı ekler."""
         self.mesajlar.append((metin, self._zaman))
 
     def _olay(self, ad, nesne=None, mesaj=None, **veri):
+        """Olay yoluna `hologram.*` olayı yayınlar (varsa) ve isteğe bağlı ekran mesajı gösterir."""
         if mesaj:
             self._mesaj(mesaj)
         if self.yol is not None:
@@ -248,7 +286,12 @@ class Masa:
     # --- Ana güncelleme ---
 
     def guncelle(self, eller, zaman):
-        """eller: `.taraf` ve `.noktalar` alanları olan nesneler (goru.el.El)."""
+        """Her karede bir kez çağır. eller: `.taraf` ve `.noktalar` alanları olan nesneler (goru.el.El).
+
+        Sıra önemlidir: önce her el kendi başına işlenir, sonra iki eli ilgilendiren işler
+        (ölçekleme, alkış), en sonda fizik (fırlatılmış nesnelerin süzülmesi).
+        """
+        # dt üst sınırı 0.1 sn: kare atlaması olursa nesneler ışınlanmasın
         dt = 0.0 if self._son_zaman is None else min(max(zaman - self._son_zaman, 0.0), 0.1)
         self._son_zaman = self._zaman = zaman
         gorulen = {e.taraf: e for e in eller}
@@ -265,6 +308,7 @@ class Masa:
         self._fizik(dt)
 
     def _el_kayboldu(self, anahtar):
+        """El görüş alanından çıktı: tuttuğu nesneyi bırak, pençeyi kapat, çektiği nesneyi serbest bırak."""
         d = self._eller.pop(anahtar)
         if d.tutulan is not None:
             self._birak(anahtar, d, self._zaman, iptal=True)
@@ -274,7 +318,9 @@ class Masa:
                 n.mod, n.cekici = "serbest", None
 
     def _el_guncelle(self, anahtar, d, n, zaman, dt):
+        """Tek elin tek karesi: çimdik olayına göre kavra / bırak, sonra taşı ya da kazı, pençeyi işle."""
         d.noktalar = n
+        # 1) Çimdik algıla ve imleç konumunu (başparmak-işaret ortası) filtrele
         olay = d.cimdik.guncelle(n, zaman)
         ham = d.cimdik.nokta
         fx, fy = d.filtre((ham[0] / self.w, ham[1] / self.h), zaman)
@@ -283,12 +329,14 @@ class Masa:
         while len(d.gecmis) > 2 and zaman - d.gecmis[0][0] > 0.3:
             d.gecmis.popleft()
 
+        # 2) "Açık avuç" bilgisi: pençe geçişi ve pençeyle çekilen nesneyi bırakma için gerekli
         acik_parmak = j.duz_parmak_sayisi(n)  # Kanca gibi kıvrık parmaklar sayılmaz (pençe açık el değildir)
         oran = d.cimdik.olcum["oran"]
         d.avuc_acik = acik_parmak >= 4 and oran > 0.8
         if d.avuc_acik or (acik_parmak >= 3 and oran > 0.7):
             d.son_acik = zaman
 
+        # 3) Çimdik olayı: kavra ya da bırak
         if (olay == "basladi" and d.cimdik.kavrayabilir) or olay == "iyilesti":
             self._kavra(anahtar, d, zaman)
         elif olay in ("bitti", "iptal"):
@@ -307,6 +355,7 @@ class Masa:
     # --- Ders 6: tut, taşı, bırak, fırlat ---
 
     def _isabet(self, nokta):
+        """`nokta` hangi nesnenin üstünde? (en üsttekini döndürür, yoksa None). Küçük bir pay bırakılır."""
         pay = 0.012 * self.w
         for n in reversed(self.nesneler):  # Üstteki nesne önce
             x0, y0, x1, y1 = n.sinir()
@@ -315,6 +364,7 @@ class Masa:
         return None
 
     def _kavra(self, anahtar, d, zaman):
+        """Çimdik başladı. Altında nesne varsa tutar (ikinci el de tutarsa ölçekleme başlar), yoksa boş çimdiktir."""
         nesne = self._isabet(d.imlec)
         if nesne is None or len(nesne.tutanlar) >= 2 or nesne.mod == "cekiliyor":
             d.kazima = {}  # Boş çimdik: yana sürüklenirse patlatma
@@ -337,6 +387,7 @@ class Masa:
         self._olay("hologram.tutuldu", nesne)
 
     def _birak(self, anahtar, d, zaman, iptal=False):
+        """Çimdik bitti. Kısa ve hareketsizse DOKUNMA, hızlıysa FIRLATMA, yoksa normal bırakma."""
         nesne, d.tutulan = d.tutulan, None
         if nesne is None:
             return
@@ -365,6 +416,7 @@ class Masa:
             self._olay("hologram.birakildi", nesne)
 
     def _dokun(self, nesne):
+        """Dokunma: modeli patlat / topla, kartı aç / kapat."""
         if nesne.tur == "model":
             nesne.patlama_hedef = 0.0 if nesne.patlama_hedef > 0.5 else 1.0
             mesaj = "model acildi" if nesne.patlama_hedef else "model kapandi"
@@ -386,6 +438,7 @@ class Masa:
         return en_iyi
 
     def _tasi(self, d, zaman):
+        """Tutulan nesneyi eli takip ettirir. Model, 1 sn sabit tutulursa döndürme moduna geçer."""
         nesne = d.tutulan
         if nesne.mod == "tasi":
             if float(np.linalg.norm(d.imlec - d.sabit_noktasi)) > DONDURME_TOLERANSI * self.w:
@@ -420,6 +473,7 @@ class Masa:
             m.patlama = m.patlama_hedef = float(np.clip(d.kazima["taban"] + dx / (PATLATMA_MESAFESI * self.w), 0, 1))
 
     def _iki_el_olcekle(self):
+        """İki el aynı nesneyi tutuyorsa ölçek = elin arası mesafenin başlangıca oranı."""
         for n in self.nesneler:
             if n.mod == "olcek" and len(n.tutanlar) == 2:
                 a, b = (self._eller[k].imlec for k in n.tutanlar)
@@ -430,6 +484,7 @@ class Masa:
                 n.y += (orta[1] - n.y) * 0.5
 
     def _fizik(self, dt):
+        """Serbest nesnelerin hareketi: sürtünmeyle yavaşla (üstel sönüm), kenardan seker. Patlama animasyonunu da ilerletir."""
         for n in self.nesneler:
             if n.mod == "serbest" and (n.vx or n.vy):
                 n.x += n.vx * dt
@@ -451,11 +506,14 @@ class Masa:
     # --- Ders 7: pençe ve alkış ---
 
     def _pence_birak(self, p):
+        """Pençeyi boşa al (hedefin titremesi de durur)."""
         if p.hedef is not None:
             p.hedef.titreme = 0.0
         p.faz, p.hedef, p.kayip_zamani = 0, None, None
 
     def _pence(self, anahtar, d, zaman):
+        """Pençe durum makinesi: boşta → (açık elden pençe pozu) kuruldu → nişan al, hedef titrer
+        → (2 sn sonra) pençeyi hızla kapat → nesne ele uçar."""
         p, n = d.pence, d.noktalar
         tutuyor = d.tutulan is not None or any(x.cekici == anahtar for x in self.nesneler)
         poz = pence_pozu(n, icinde=p.faz > 0)
@@ -546,6 +604,7 @@ class Masa:
                     self._olay("hologram.birakildi", x)
 
     def _alkis(self, zaman):
+        """Alkış: iki avuç dik duruyor, kısa sürede hızla birbirine yaklaştı → masayı toparla."""
         eller = [d for d in self._eller.values() if d.noktalar is not None]
         if len(eller) < 2:
             self._alkis_gecmisi.clear()
@@ -576,6 +635,7 @@ class Masa:
     # --- Tarayıcıya giden durum ---
 
     def durum(self):
+        """Tarayıcıya gidecek tam sahne durumu (nesneler, el imleçleri, mesajlar, açık özellikler)."""
         imlecler = []
         for anahtar, d in self._eller.items():
             if d.imlec is None:

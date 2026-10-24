@@ -31,6 +31,12 @@ def duz_parmaklar(noktalar):
 
 
 class HavaTuvali:
+    """Şeffaf bir tuval: işaret parmağıyla çizilir, sonra kamera karesinin üstüne bindirilir.
+
+    `guncelle()` her karede elin durumuna bakıp üç moddan birini seçer:
+    ciziyor (sadece işaret düz), geziniyor (işaret + orta düz), bekliyor (diğer her şey).
+    """
+
     def __init__(self, genislik, yukseklik, kalinlik=6):
         self.w, self.h = genislik, yukseklik
         self.tuval = np.zeros((yukseklik, genislik, 3), np.uint8)
@@ -47,9 +53,11 @@ class HavaTuvali:
 
     @property
     def renk(self):
+        """Seçili renk: (ad, BGR). Silgi için BGR None'dır."""
         return RENKLER[self.renk_no]
 
     def temizle(self):
+        """Tuvali tamamen siler."""
         self.tuval[:] = 0
 
     def guncelle(self, el, zaman):
@@ -64,6 +72,7 @@ class HavaTuvali:
         self.uc = (int(fx * self.w), int(fy * self.h))
         isaret, orta, yuzuk, serce = duz_parmaklar(n)
 
+        # Önceliğe göre: açık avuç (temizle) > sadece işaret (çiz) > işaret+orta (gezin/renk seç)
         if isaret and orta and yuzuk and serce:  # Açık avuç: tutarsa temizle
             self._onceki, self.durum = None, "bekliyor"
             if self._avuc_baslangic is None:
@@ -76,6 +85,7 @@ class HavaTuvali:
         self._avuc_baslangic = None
 
         if isaret and not orta and not yuzuk:
+            # Önceki noktayla yeni nokta arasına çizgi çekilir: hızlı harekette bile kopukluk olmaz
             self.durum = "ciziyor"
             if self._onceki is not None:
                 ad, renk = self.renk
@@ -86,7 +96,7 @@ class HavaTuvali:
             self._onceki = self.uc
             return None
 
-        self._onceki = None
+        self._onceki = None  # Kalem havada: bir sonraki çizim yeni bir çizgi başlatır
         if isaret and orta:
             self.durum = "geziniyor"
             for i, (x, y, g, h) in enumerate(self.palet):
@@ -104,6 +114,7 @@ class HavaTuvali:
         return kare
 
     def palet_ciz(self, kare):
+        """Üstteki renk paletini çizer; seçili renk kalın çerçevelenir."""
         for i, ((x, y, g, h), (ad, renk)) in enumerate(zip(self.palet, RENKLER)):
             if renk is None:
                 cv2.rectangle(kare, (x, y), (x + g, y + h), (40, 40, 40), -1)
@@ -114,6 +125,7 @@ class HavaTuvali:
             cv2.rectangle(kare, (x, y), (x + g, y + h), (255, 255, 255), kalin)
 
     def kaydet(self, klasor):
+        """Tuvali zaman damgalı PNG olarak kaydedip dosya yolunu döndürür."""
         os.makedirs(klasor, exist_ok=True)
         yol = os.path.join(klasor, time.strftime("cizim_%Y%m%d_%H%M%S.png"))
         cv2.imwrite(yol, self.tuval)

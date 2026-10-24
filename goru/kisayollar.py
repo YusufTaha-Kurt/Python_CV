@@ -25,6 +25,8 @@ KAYDIRMALAR = {
 
 
 class PyAutoGuiKlavye:
+    """Gerçek klavye kısayolu gönderir (örn. Win+Yukarı)."""
+
     def __init__(self):
         import pyautogui
 
@@ -32,10 +34,13 @@ class PyAutoGuiKlavye:
         self._p = pyautogui
 
     def kisayol(self, *tuslar):
+        """Tuşlara birlikte basar: kisayol("alt", "tab")."""
         self._p.hotkey(*tuslar, _pause=False)
 
 
 class SahteKlavye:
+    """Hiçbir tuşa basmaz, kısayolları listeye yazar (--sadece-izle ve testler için)."""
+
     def __init__(self, yazdir=False):
         self.basilanlar = []
         self._yazdir = yazdir
@@ -62,6 +67,7 @@ class Kaydirici:
         self.sifirla()
 
     def sifirla(self):
+        """Hareket geçmişini unutur (zafer jesti bırakılınca çağrılır)."""
         self._onceki = None
         self._birikim = 0.0
         self._filtre.sifirla()
@@ -83,6 +89,12 @@ class Kaydirici:
 
 
 class PencereKontrol:
+    """PENCERE modunda jest olaylarını klavye kısayollarına ve kaydırmaya çevirir.
+
+    Sözlük üstteki ISLER ve KAYDIRMALAR tablolarındadır; yeni bir jest bağlamak için oraya
+    bir satır eklemek yeterlidir.
+    """
+
     def __init__(self, yol, el="sag", klavye=None, fare=None):
         self.yol = yol
         self.el = el
@@ -96,14 +108,17 @@ class PencereKontrol:
         yol.abone_ol("jest.kaydirma", self._kaydirma)
 
     def _jest_degisti(self, olay):
+        """Statik jest → ISLER tablosundaki kısayol (başparmak yukarı = büyüt, rock = küçült, L = Alt+Tab)."""
         if self.aktif and olay.veri.get("el") == self.el and olay.veri["jest"] in ISLER:
             self._eylem(*ISLER[olay.veri["jest"]])
 
     def _kaydirma(self, olay):
+        """Avuçla yana kaydırma → KAYDIRMALAR tablosundaki sanal masaüstü kısayolu."""
         if self.aktif and olay.veri.get("el") == self.el:
             self._eylem(*KAYDIRMALAR[olay.veri["yon"]])
 
     def _eylem(self, ad, tuslar):
+        """Eylemi duyurur (pencere.eylem olayı) ve kısayol tuşlarına basar."""
         self.son_eylem = ad
         self.yol.yayinla("pencere.eylem", eylem=ad)
         self.klavye.kisayol(*tuslar)

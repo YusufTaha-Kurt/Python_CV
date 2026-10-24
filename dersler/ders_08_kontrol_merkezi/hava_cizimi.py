@@ -26,6 +26,7 @@ KAYIT_KLASORU = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ciziml
 
 
 def main():
+    """Ders akışı: el bul → HavaTuvali parmak durumuna göre çizer / gezinir / siler → tuvali kamera karesine bindir."""
     ayrac = arguman_ayraci("Hava Çizimi")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag", help="Çizen el")
     args = ayrac.parse_args()
@@ -46,6 +47,7 @@ def main():
             elif olay == "renk":
                 mesaj = f"renk: {tuval.renk[0]}"
 
+            # Çizilenler kamera görüntüsünün üstüne bindirilir
             tuval.birlestir(kare)
             tuval.palet_ciz(kare)
             if el is not None:

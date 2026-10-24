@@ -12,6 +12,13 @@ Sadece Python standart kütüphanesi kullanılır ve sunucu yalnızca 127.0.0.1'
                         ?gecmis=1 ile bağlanınca önce son 50 olay gönderilir (kontrol paneli için)
     GET  /durum.json    En son durumun anlık görüntüsü
     POST /komut         JSON komut {"a": "...", ...}; izin listesinde olmayanlar reddedilir
+
+Üç farklı akış türü vardır, çünkü her biri farklı bir ihtiyaca hizmet eder:
+    MJPEG   Video. Tarayıcı <img> etiketiyle sürekli yenilenen JPEG gösterir.
+    SSE     (Server-Sent Events) Sunucudan tarayıcıya tek yönlü, metin tabanlı canlı akış.
+            /durum "en son hâli" verir (sahne çizimi için ara kareler önemsizdir);
+            /olaylar ise HİÇBİRİNİ kaçırmaz (olay günlüğü, kontrol paneli için).
+    POST    Tarayıcıdan Python'a komut. Güvenlik için sadece izin listesindekiler kabul edilir.
 """
 
 import json
@@ -29,9 +36,12 @@ _BAGLANTI_KAPANDI = (ConnectionResetError, ConnectionAbortedError, BrokenPipeErr
 
 
 class _Sunucu(ThreadingHTTPServer):
+    """Her istek ayrı iş parçacığında çalışır; uzun süren SSE / MJPEG bağlantıları diğerlerini engellemez."""
+
     daemon_threads = True
 
     def handle_error(self, request, client_address):
+        """Beklenen bağlantı kopmalarını sessizce yut, gerçek hataları normal şekilde bildir."""
         # Tarayıcı sekmesi kapanınca bağlantı koparılır: bu bir hata değil, günlüğe yazılmasın
         if isinstance(sys.exc_info()[1], _BAGLANTI_KAPANDI):
             return
@@ -39,6 +49,9 @@ class _Sunucu(ThreadingHTTPServer):
 
 
 class CanliYayin:
+    """Yerel HTTP sunucusu. Ana döngü `kare_yayinla`, `durum_yayinla`, `olay_yayinla` ile veri verir;
+    tarayıcı ya da başka bir uygulama bağlanıp okur. `baslat()` adresi döndürür."""
+
     def __init__(self, kok_klasor=None, port=8765, ek_klasorler=None, izinli_komutlar=()):
         self.kok = Path(kok_klasor).resolve() if kok_klasor else None
         self.ek_klasorler = {onek.strip("/"): Path(yol).resolve() for onek, yol in (ek_klasorler or {}).items()}
@@ -58,6 +71,7 @@ class CanliYayin:
 
     @property
     def video_izleniyor(self):
+        """Şu an videoyu izleyen tarayıcı var mı? Yoksa JPEG kodlaması yapılmaz."""
         return self._video_istemcileri > 0
 
     def kare_yayinla(self, kare_bgr, kalite=75):
@@ -73,6 +87,7 @@ class CanliYayin:
                 self._kosul.notify_all()
 
     def durum_yayinla(self, durum):
+        """Son durumu (JSON'a çevrilebilir sözlük) günceller; /durum akışındaki herkese iletilir."""
         veri = json.dumps(durum, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         with self._kosul:
             self._durum, self._durum_no = veri, self._durum_no + 1
@@ -97,13 +112,17 @@ class CanliYayin:
     # --- Sunucu ---
 
     def baslat(self):
+        """Sunucuyu arka planda başlatır ve adresini ("http://127.0.0.1:PORT/") döndürür. port=0: boş port seçilir."""
         yayin = self
 
         class Isleyici(BaseHTTPRequestHandler):
+            """Gelen HTTP isteklerini yukarıdaki yayın nesnesinin ilgili yöntemine yönlendirir."""
+
             def log_message(self, *_):
-                pass
+                pass  # Her isteği konsola yazma (video akışı saniyede onlarca satır üretirdi)
 
             def do_GET(self):
+                """GET yolları: /video.mjpg, /durum, /olaylar, /durum.json, gerisi statik dosya."""
                 yol = self.path.split("?", 1)[0]
                 if yol == "/video.mjpg":
                     return yayin._mjpeg(self)
@@ -118,6 +137,7 @@ class CanliYayin:
                 return yayin._statik(self, yol)
 
             def do_POST(self):
+                """POST /komut: JSON gövdesi izin listesine karşı denetlenir; geçerliyse kuyruğa alınır."""
                 if self.path.split("?", 1)[0] != "/komut":
                     return yayin._gonder(self, 404, b"")
                 uzunluk = int(self.headers.get("Content-Length", 0) or 0)
@@ -139,6 +159,7 @@ class CanliYayin:
         return f"http://127.0.0.1:{self.port}/"
 
     def durdur(self):
+        """Sunucuyu ve bekleyen akış bağlantılarını kapatır."""
         self._calisiyor = False
         with self._kosul:
             self._kosul.notify_all()
@@ -150,6 +171,7 @@ class CanliYayin:
 
     @staticmethod
     def _gonder(istek, kod, veri, tur="application/octet-stream"):
+        """Tek seferlik yanıt gönderir (önbellek kapalı: tarayıcı hep güncel veriyi alsın)."""
         istek.send_response(kod)
         if veri:
             istek.send_header("Content-Type", tur)
@@ -160,6 +182,7 @@ class CanliYayin:
             istek.wfile.write(veri)
 
     def _statik(self, istek, yol):
+        """Kök (ya da ek) klasörden dosya sunar. Klasör dışına çıkış girişimleri 404 döner."""
         # URL kodunu çöz ("resim%20adi.png"); kaçış denemeleri ("%2e%2e") aşağıdaki kontrolde yakalanır
         parcalar = [p for p in urllib.parse.unquote(yol).split("/") if p]
         kok = self.kok
@@ -178,6 +201,7 @@ class CanliYayin:
         return self._gonder(istek, 200, hedef.read_bytes(), tur)
 
     def _sse_baslik(self, istek):
+        """SSE yanıtının başlıklarını yazar; bağlantı açık kalır."""
         istek.send_response(200)
         istek.send_header("Content-Type", "text/event-stream; charset=utf-8")
         istek.send_header("Cache-Control", "no-store")
@@ -185,6 +209,7 @@ class CanliYayin:
         istek.end_headers()
 
     def _sse_durum(self, istek):
+        """/durum: yeni durum gelince gönderir; yavaş istemci ara durumları kaçırır, hep en günceli alır."""
         self._sse_baslik(istek)
         son_no = -1
         try:
@@ -198,6 +223,7 @@ class CanliYayin:
             pass
 
     def _sse_olaylar(self, istek, gecmis=False):
+        """/olaylar: her istemcinin KENDİ kuyruğu vardır, böylece hiçbir olay kaçmaz ve kimse diğerini yavaşlatmaz."""
         self._sse_baslik(istek)
         kuyruk = queue.Queue()
         with self._kosul:
@@ -220,6 +246,7 @@ class CanliYayin:
                 self._olay_kuyruklari.remove(kuyruk)
 
     def _mjpeg(self, istek):
+        """/video.mjpg: yeni JPEG gelince sürekli gönderir. İzleyici sayılır (kodlama sadece izleyen varken yapılır)."""
         istek.send_response(200)
         istek.send_header("Content-Type", "multipart/x-mixed-replace; boundary=kare")
         istek.send_header("Cache-Control", "no-store")

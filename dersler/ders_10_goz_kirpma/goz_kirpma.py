@@ -47,6 +47,7 @@ def bip():
 
 
 def goz_ciz(kare, yuz, goz, kapali):
+    """Gözleri konturla çizer: açık yeşil, kapalı kırmızı."""
     for indeksler, k in ((EKRAN_SOL_GOZ, kapali[0]), (EKRAN_SAG_GOZ, kapali[1])):
         noktalar = yuz.noktalar[list(indeksler), :2].astype(int)
         cv2.polylines(kare, [noktalar], True, hud.KIRMIZI if k else hud.YESIL, 2, cv2.LINE_AA)
@@ -63,6 +64,8 @@ def ear_cubugu(kare, x, etiket, deger, taban, kapanma):
 
 
 def main():
+    """Ders akışı (her karede): yüzü bul → göz kırpma algılayıcı olay üretir (doğal / bilinçli / tek göz / mikro uyku)
+    → yorgunluk izleyici PERCLOS ve esnemeyi hesaplar → uyarı / (isteğe bağlı) baş faresiyle tıklama."""
     ayrac = arguman_ayraci("Göz Kırpma ve Yorgunluk")
     ayrac.add_argument("--fare", action="store_true", help="Başla imleç + göz kırparak tıklama")
     ayrac.add_argument("--alarm", action="store_true", help="Yorgunlukta sesli uyarı")
@@ -88,7 +91,7 @@ def main():
             yuzler = takipci.isle(kare, simdi)
             if yuzler:
                 yuz = yuzler[0]
-                olaylar = goz.guncelle(yuz.noktalar, simdi)
+                olaylar = goz.guncelle(yuz.noktalar, simdi)  # göz olayları
                 uyarilar = yorgunluk.guncelle(goz.ikisi_kapali, olaylar, yuz.ifadeler.get("jawOpen", 0.0), simdi)
                 for olay in olaylar + uyarilar:
                     print(f"[{time.strftime('%H:%M:%S')}] {olay}")
@@ -99,6 +102,7 @@ def main():
                         if args.alarm and not args.sadece_izle:
                             bip()
 
+                # --fare: baş imleci yönetir, bilinçli kırpma sol tık, sağ göz kırpma sağ tık
                 if bas_faresi is not None:
                     yaw, pitch, _ = matris_acilari(yuz.donusum)
                     hedef = bas_faresi.isle(yaw, pitch, simdi)

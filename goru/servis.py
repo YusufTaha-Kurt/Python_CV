@@ -64,6 +64,7 @@ log = logging.getLogger("goru.servis")
 
 
 def varsayilan_ayarlar():
+    """Varsayılan ayarların bağımsız bir kopyası (değiştirmek güvenlidir)."""
     return copy.deepcopy(VARSAYILAN_AYARLAR)
 
 
@@ -77,6 +78,7 @@ def ayarlari_yukle(yol):
 
 
 def _birlestir(hedef, kaynak):
+    """`kaynak` sözlüğünü `hedef` içine iç içe (derin) birleştirir; kaynakta olmayan anahtarlar korunur."""
     for anahtar, deger in kaynak.items():
         if isinstance(deger, dict) and isinstance(hedef.get(anahtar), dict):
             _birlestir(hedef[anahtar], deger)
@@ -112,6 +114,7 @@ class _ArkaIsci:
         self.thread.start()
 
     def ver(self, kare, zaman, eller):
+        """İşlenecek kareyi bırakır. Önceki kare hâlâ işlenmediyse onu atar (eski kareyi işlemenin anlamı yok)."""
         with self._kosul:
             if self._is is not None:
                 self.atlanan += 1  # Önceki kare henüz işlenmedi: yenisiyle değiştir
@@ -119,6 +122,7 @@ class _ArkaIsci:
             self._kosul.notify()
 
     def _dongu(self):
+        """İş parçacığı gövdesi: kare gelene kadar uyur, gelince arka plan yeteneklerini çalıştırır."""
         while True:
             with self._kosul:
                 self._kosul.wait_for(lambda: self._is is not None or self._dur)
@@ -134,6 +138,7 @@ class _ArkaIsci:
             self.islenen += 1
 
     def durdur(self):
+        """İş parçacığını durdurur."""
         with self._kosul:
             self._dur = True
             self._kosul.notify()
@@ -141,6 +146,13 @@ class _ArkaIsci:
 
 
 class Servis:
+    """Kamera → takipçiler → yetenekler hattını yöneten ana sınıf.
+
+    `ayarlar`: VARSAYILAN_AYARLAR biçiminde sözlük. `yol`: olayların yayınlanacağı OlayYolu
+    (verilmezse yenisi kurulur). `yetenek_siniflari` ve `takipci_fabrikasi` testlerde sahte
+    nesne vermek içindir; normalde boş bırakılır.
+    """
+
     def __init__(self, ayarlar=None, yol=None, yetenek_siniflari=None, takipci_fabrikasi=None):
         from .yetenekler import YETENEKLER
 
@@ -180,6 +192,7 @@ class Servis:
     # --- Yetenek yönetimi ---
 
     def _yetenek_ac(self, ad):
+        """Yeteneği kurup çalışanlara ekler (zaten açıksa ya da bilinmiyorsa False). Kurulum hatası servisi çökertmez."""
         with self._kilit:
             if ad in self.yetenekler or ad not in self._siniflar:
                 return False
@@ -196,6 +209,7 @@ class Servis:
         return True
 
     def _yetenek_kapat(self, ad, neden="komut"):
+        """Çalışan yeteneği kapatır (o an `isle` içindeyse bitmesini bekler). Kapatıldıysa True."""
         with self._kilit:
             yetenek = self.yetenekler.pop(ad, None)
             kilit = self._yetenek_kilitleri.get(ad) or contextlib.nullcontext()
@@ -231,12 +245,14 @@ class Servis:
     # --- Bir karenin işlenmesi ---
 
     def _takipci(self, ad):
+        """Takipçiyi ilk istendiğinde kurar, sonra aynısını verir (kullanılmayan model belleği ve işlemciyi yemez)."""
         with self._kilit:
             if ad not in self._takipciler:
                 self._takipciler[ad] = self._takipci_fabrikasi(ad)
             return self._takipciler[ad]
 
     def gerekenler(self, grup=None):
+        """Açık yeteneklerin istediği takipçiler kümesi ("el", "yuz", "poz"). `grup`: "on" / "arka" / None (hepsi)."""
         with self._kilit:
             secilen = [y for y in self.yetenekler.values() if grup is None or y.on_plan == (grup == "on")]
         return set().union(*(y.gerekenler for y in secilen)) if secilen else set()
@@ -256,6 +272,7 @@ class Servis:
         """
         from .jestler import JestYayincisi
 
+        # 1) Bu karede çalışması gereken yetenekleri seç (aralık: 2 ise iki karede bir)
         with self._kilit:
             if self._yayinci is None:
                 self._yayinci = JestYayincisi(self.yol)
@@ -268,6 +285,7 @@ class Servis:
             sahip = self.sahip_burada()
         gerekenler = set().union(*(y.gerekenler for _, y in sirasi_gelen)) if sirasi_gelen else set()
 
+        # 2) Sadece gereken takipçileri çalıştır; sonuçlar Baglam'da toplanır
         b = Baglam(kare, zaman, jest=self._yayinci.jest)
         if eller is not None:
             b.eller = eller
@@ -286,6 +304,8 @@ class Servis:
         elif grup != "arka" and not self.gerekenler():
             self._varlik_guncelle(True, zaman)  # Hiçbir yetenek görüntü modeli istemiyor: bekleme yok
 
+        # 3) Yetenekleri çalıştır. Bir yetenek üst üste MAX_HATA kez hata verirse kapatılır,
+        # diğerleri etkilenmez (7/24 çalışmada tek bir hatanın her şeyi durdurmaması için)
         kapatilacak = []
         for ad, yetenek in sirasi_gelen:
             with self._yetenek_kilitleri[ad]:
@@ -328,6 +348,7 @@ class Servis:
         return zaman - self._son_islenen >= 1.0 / self.ayarlar["tasarruf"]["bekleme_fps"]
 
     def durum(self):
+        """Panelde ve /durum.json'da görünen anlık özet (FPS, işlem süreleri, yetenek durumları)."""
         with self._kilit:
             yetenekler = dict(self.yetenekler)
         return {
@@ -349,6 +370,7 @@ class Servis:
     # --- Çalıştırma ---
 
     def _hazirla(self):
+        """Olay günlüğünü (JSONL), HTTP arayüzünü ve arka plan iş parçacığını kurar."""
         klasor = self.ayarlar.get("kayit_klasoru")
         if klasor:
             os.makedirs(klasor, exist_ok=True)
@@ -413,6 +435,7 @@ class Servis:
             self._kapat()
 
     def _onizleme(self, b):
+        """İsteğe bağlı önizleme penceresi (--onizleme): el iskeleti ve yetenek durumları."""
         import cv2
 
         from . import hud
@@ -435,11 +458,13 @@ class Servis:
         return self
 
     def durdur(self, bekle=5.0):
+        """Servisi durdurur ve en çok `bekle` saniye bitmesini bekler."""
         self._durdur.set()
         if self._thread is not None and threading.current_thread() is not self._thread:
             self._thread.join(timeout=bekle)
 
     def _kapat(self):
+        """Temizlik: iş parçacığı, yetenekler, takipçiler, HTTP sunucusu ve günlük dosyası sırayla kapanır."""
         self.calisiyor = False
         if self._arka is not None:
             self._arka.durdur()
@@ -468,6 +493,7 @@ class Servis:
 
 
 def _gercek_takipci(ad):
+    """Takipçi fabrikası: ad ("el", "yuz", "poz") → gerçek MediaPipe takipçisi. İlk istendiğinde (tembel) kurulur."""
     if ad == "el":
         from .el import ElTakipci
 

@@ -43,6 +43,8 @@ def yon_oku(kare, yuz, yaw, pitch):
 
 
 def main():
+    """Ders akışı (her karede): yüzü bul → baş açılarını iki yöntemle hesapla (ekranda karşılaştır)
+    → BasFaresi açıları ekran hedefine çevirsin → imleç hareket etsin → 1 sn sabit kalırsa tıkla."""
     args = arguman_ayraci("Yüz İskeleti ve Baş Pozu").parse_args()
     ekran = tuple(pyautogui.size())
     fare = SahteFare(yazdir=True) if args.sadece_izle else PyAutoGuiFare()
@@ -62,10 +64,12 @@ def main():
             satirlar = []
             if yuzler:
                 yuz = yuzler[0]
+                # Aynı açılar iki yoldan: MediaPipe matrisi (imleç bunu kullanır) ve klasik solvePnP
                 yaw, pitch, roll = matris_acilari(yuz.donusum)
                 pnp = pnp_acilari(yuz.noktalar, (genislik, yukseklik))
                 yuz_ciz(kare, yuz)
                 yon_oku(kare, yuz, yaw, pitch)
+                # İlk 1.5 sn kalibrasyon (hedef None döner); sonra açılar ekran noktasına çevrilir
                 hedef = bas_faresi.isle(yaw, pitch, simdi)
                 if hedef is not None:
                     if surucu:

@@ -22,10 +22,15 @@ class V2Cimdik:
         self.ic = j.CimdikAlgilayici(baslama=0.25, birakma=0.38)
 
     def guncelle(self, noktalar, zaman):
+        """GuvenilirCimdik ile aynı arayüz: "basladi" / "bitti" / None döndürür."""
         return self.ic.guncelle(j.cimdik_orani(noktalar))
 
 
 def main():
+    """Aynı video üzerinde eski (V2) ve yeni (V3) çimdik algılayıcıyı yarıştırır; kaç sahte tık ürettiklerini sayar.
+
+    Gerçek bir kayıtla çalıştır: python karsilastir.py --kaynak kayit.mp4
+    """
     ayrac = arguman_ayraci("V2 / V3 çimdik karşılaştırması")
     args = ayrac.parse_args()
     args.pencere_yok = True

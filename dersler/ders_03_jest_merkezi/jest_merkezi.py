@@ -29,13 +29,20 @@ PARMAK_UCLARI = (j.BAS_UCU, j.ISARET_UCU, j.ORTA_UCU, j.YUZUK_UCU, j.SERCE_UCU)
 
 
 def main():
+    """Ders akışı: el bul → JestYayincisi jestleri olay yoluna yayınlar → aboneler olayı yazdırır / dosyaya kaydeder.
+
+    Bu derste jestlere tepki veren hiçbir "eylem" yoktur; amaç mimariyi göstermek:
+    görüntü kodu sadece ne olduğunu söyler, kimin ne yapacağını abone olanlar belirler.
+    """
     args = arguman_ayraci("Jest Merkezi").parse_args()
 
+    # Olay yolu: her şey buradan geçer. İki abone: konsol ve JSONL dosyası ("*" = tüm olaylar).
     yol = OlayYolu()
     kaydedici = JsonlKaydedici(KAYIT_DOSYASI)
     son_olay = ["-"]
 
     def konsola_yaz(olay):
+        """Her olayı saat damgasıyla konsola yazar, ekran panelindeki "son olay" için saklar."""
         print(f"[{time.strftime('%H:%M:%S')}] {olay.ad:<16} {olay.veri}")
         son_olay[0] = f"{olay.ad} {olay.veri.get('jest') or olay.veri.get('yon') or ''}"
 
@@ -47,10 +54,10 @@ def main():
     app = Uygulama(args, "Jest Merkezi")
     with ElTakipci(max_el=2) as takipci:
         for kare, simdi in app.kareler():
-            eller = takipci.isle(kare, simdi)
-            yayinci.guncelle(eller, simdi)
+            eller = takipci.isle(kare, simdi)  # 1) elleri bul
+            yayinci.guncelle(eller, simdi)  # 2) jestleri tanı, değişince olay yayınla
 
-            # Görselleştirme: iskelet, açık parmak uçları ve elin üstünde jest adı
+            # 3) Görselleştirme: iskelet, açık parmak uçları ve elin üstünde jest adı
             for el in eller:
                 n = el.noktalar
                 parmaklar = j.parmak_durumlari(n)

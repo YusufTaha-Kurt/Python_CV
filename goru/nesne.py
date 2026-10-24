@@ -1,5 +1,10 @@
 """Ders 15: Nesne tespiti (MediaPipe Object Detector, EfficientDet-Lite0, COCO'nun 80 sınıfı)
-ve parmakla işaret edilen nesneyi bulma."""
+ve parmakla işaret edilen nesneyi bulma.
+
+Dedektör her kareye bakıp "şurada %80 ihtimalle fincan var" diyen kutular üretir. Hafıza yoktur:
+hangi kutunun önceki karedeki hangi nesne olduğunu bilmez (bunu takip.py çözer).
+COCO sınıf adları İngilizcedir; ekranda göstermek için aşağıdaki TURKCE sözlüğü kullanılır.
+"""
 
 import time
 from dataclasses import dataclass
@@ -33,16 +38,21 @@ TURKCE = {
 
 @dataclass
 class Tespit:
+    """Tek bir tespit: nerede (kutu), ne (etiket) ve ne kadar emin (skor)."""
+
     kutu: tuple  # (x0, y0, x1, y1) piksel
     etiket: str  # COCO adı (İngilizce)
     skor: float
 
     @property
     def ad(self):
+        """Türkçe (ASCII) ad; sözlükte yoksa İngilizce etiket."""
         return TURKCE.get(self.etiket, self.etiket)
 
 
 class NesneDedektoru:
+    """`skor_esigi`: bundan emin olmadığı tespitleri at. `izinli`: sadece bu sınıfları ara (örn. ["cup", "bottle"])."""
+
     def __init__(self, skor_esigi=0.4, max_sonuc=10, izinli=None):
         import cv2
         import mediapipe as mp
@@ -63,6 +73,7 @@ class NesneDedektoru:
         self._son_zaman_ms = -1
 
     def isle(self, kare_bgr, zaman=None):
+        """Karedeki nesneleri Tespit listesi olarak döndürür."""
         goruntu = self._mp.Image(image_format=self._mp.ImageFormat.SRGB,
                                  data=self._cv2.cvtColor(kare_bgr, self._cv2.COLOR_BGR2RGB))
         zaman_ms = max(int((time.monotonic() if zaman is None else zaman) * 1000), self._son_zaman_ms + 1)
@@ -76,6 +87,7 @@ class NesneDedektoru:
         return tespitler
 
     def kapat(self):
+        """Modeli serbest bırakır."""
         self._dedektor.close()
 
     def __enter__(self):

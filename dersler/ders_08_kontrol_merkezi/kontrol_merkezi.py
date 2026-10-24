@@ -38,6 +38,7 @@ MODLAR = ["FARE", "MEDYA", "PENCERE"]
 
 
 def mod_sekmeleri(kare, secili, uyku):
+    """Sağ üstte FARE / MEDYA / PENCERE sekmelerini çizer (seçili mod dolu, uykuda turuncu)."""
     x = kare.shape[1] - 3 * 130 - 15
     for i, mod in enumerate(MODLAR):
         renk = hud.TURUNCU if uyku else (hud.YESIL if mod == secili else (110, 110, 110))
@@ -47,6 +48,13 @@ def mod_sekmeleri(kare, secili, uyku):
 
 
 def main():
+    """Ders akışı (her karede):
+        1. İki eli bul: kontrol eli işi yapar, mod eli (diğer el) parmak sayısıyla modu seçer
+        2. Jestleri yayınla (JestYayincisi) → medya / pencere abone olup tepki verir
+        3. Aktif moda göre: FARE ise ElFaresi, MEDYA ise ses seviyesi, PENCERE ise kaydırma
+        4. Ekrana çiz
+    Yumruk (kontrol elinde) uyku modunu açar / kapatır; uykudayken hiçbir eylem yapılmaz.
+    """
     ayrac = arguman_ayraci("Kontrol Merkezi")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag", help="Kontrol eli")
     args = ayrac.parse_args()
@@ -55,6 +63,7 @@ def main():
     yol = OlayYolu()
 
     def konsola_yaz(olay):
+        """Sadece medya / pencere / mod olaylarını konsola yazar (jest gürültüsü olmasın)."""
         if olay.ad.split(".")[0] in ("medya", "pencere", "mod"):
             print(f"[{olay.ad}] {olay.veri}")
 
@@ -73,6 +82,7 @@ def main():
         surucu.baslat()
 
     def yumruk(olay):
+        """Kontrol elinde yumruk: uyku modunu çevirir."""
         # Fare modunda çimdik sırasında parmaklar kıvrık olabilir: o an yumruk sayılmaz
         if olay.veri.get("el") == args.el and olay.veri["jest"] == "yumruk" and not faresi.cimdik_aktif:
             durum["uyku"] = not durum["uyku"]
@@ -88,12 +98,14 @@ def main():
             kontrol = next((e for e in eller if e.taraf == args.el), None)
             secen = next((e for e in eller if e.taraf == mod_eli), None)
 
+            # Mod değişikliği: FARE'den çıkarken basılı tuş takılı kalmasın diye fare sıfırlanır
             onceki_mod = secici.mod
             secici.guncelle(secen, simdi)
             yayinci.guncelle(eller, simdi)
             if secici.mod != onceki_mod and onceki_mod == "FARE":
                 faresi.sifirla()
 
+            # Sadece aktif moddaki yetenek çalışır; diğerleri `aktif=False` ile susturulur
             uyku = durum["uyku"]
             medya.aktif = secici.mod == "MEDYA" and not uyku
             pencere.aktif = secici.mod == "PENCERE" and not uyku

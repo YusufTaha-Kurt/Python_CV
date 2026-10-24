@@ -9,6 +9,11 @@ import statistics
 
 
 class Ornekleyici:
+    """Bir pozu `sure` saniye boyunca kaydeder (ölçüm adı → değer listesi).
+
+    Kullanım: baslat("cimdik", zaman) → her karede ekle(olcum, zaman) → süre dolunca True döner.
+    """
+
     def __init__(self, sure=4.0):
         self.sure = sure
         self.etiket = None
@@ -17,14 +22,17 @@ class Ornekleyici:
 
     @property
     def kayitta(self):
+        """Şu an bir poz kaydediliyor mu?"""
         return self.etiket is not None
 
     def baslat(self, etiket, zaman):
+        """`etiket` adlı yeni bir kayıt başlatır (örn. "cimdik" ya da "yumruk")."""
         self.etiket = etiket
         self._baslangic = zaman
         self.ornekler[etiket] = {}
 
     def kalan(self, zaman):
+        """Kayıt bitmesine kalan saniye (ekranda geri sayım göstermek için)."""
         return max(0.0, self.sure - (zaman - self._baslangic)) if self.kayitta else 0.0
 
     def ekle(self, olcum, zaman):
@@ -71,6 +79,7 @@ def esik_oner(dogru, yanlis):
 
 
 def _dilim(sirali, oran):
+    """Sıralı listenin `oran` yüzdelik değeri (0.10 → en küçük %10'luk sınır)."""
     return sirali[min(len(sirali) - 1, int(oran * len(sirali)))]
 
 

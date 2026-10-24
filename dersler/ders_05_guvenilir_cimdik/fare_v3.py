@@ -43,6 +43,7 @@ VARSAYILAN_AYARLAR = os.path.join(KOK, "ayarlar", "cimdik.json")
 
 
 def olcum_yaz(kare, cimdik, konum):
+    """Hata ayıklama (d tuşu): çimdik ölçümlerini çimdik noktasının yanına yazar. Eşik ayarlarken buna bak."""
     x, y = int(konum[0]) + 40, int(konum[1]) - 60
     satirlar = [f"{ad}: {deger:.2f}" for ad, deger in cimdik.olcum.items()]
     satirlar += [f"hiz: {cimdik.hiz:.1f} el/sn", f"imza: {'EVET' if cimdik.imza else 'hayir'}"]
@@ -51,6 +52,8 @@ def olcum_yaz(kare, cimdik, konum):
 
 
 def cimdik_ciz(kare, cimdik, renk, hata_ayiklama):
+    """Çimdik halkasını çizer: parmaklar yaklaştıkça dolar; yeşil = tutabilir, turuncu = hayalet.
+    Noktanın rengi OK imzasını gösterir (yeşil = görülüyor, kırmızı = görülmüyor)."""
     if cimdik.nokta is None:
         return
     dolum = 1 - (cimdik.olcum["oran"] - cimdik.ayar.baslama) / (1.0 - cimdik.ayar.baslama)
@@ -64,12 +67,15 @@ def cimdik_ciz(kare, cimdik, renk, hata_ayiklama):
 
 
 def main():
+    """Ders akışı (her karede): el bul → ElFaresi tüm fare işini yapar (imleç + çimdik + tıklama)
+    → yumruk uyku modu → örnekleyici açıksa ölçüm topla → ekrana çiz → tuşları işle."""
     ayrac = arguman_ayraci("Güvenilir Çimdik ve Fare V3")
     ayrac.add_argument("--el", choices=["sag", "sol"], default="sag", help="Fareyi yönetecek el")
     ayrac.add_argument("--imlec", choices=["orta", "kok"], default="orta", help="İmleç noktası")
     ayrac.add_argument("--ayarlar", default=VARSAYILAN_AYARLAR, help="Çimdik eşikleri (JSON)")
     args = ayrac.parse_args()
 
+    # Kişisel eşikler ayarlar/cimdik.json'dan gelir (yoksa varsayılanlar). `k` tuşu bu dosyayı yazar.
     ayar = CimdikAyarlari.yukle(args.ayarlar)
     surucu = None if args.sadece_izle else ImlecSurucu()
     fare = SahteFare(yazdir=True) if args.sadece_izle else PyAutoGuiFare()
@@ -90,6 +96,7 @@ def main():
             yukseklik, genislik = kare.shape[:2]
             el = next((e for e in takipci.isle(kare, simdi) if e.taraf == args.el), None)
 
+            # Fare işinin tamamı ElFaresi içinde (goru/fare.py): bu dosya sadece orkestra şefi
             if not uyku_modu_aktif:
                 faresi.isle(el, simdi, (genislik, yukseklik))
             if el is None:
@@ -101,6 +108,7 @@ def main():
                     uyku_modu_aktif = not uyku_modu_aktif
                     faresi.sifirla()
 
+                # Örnekleyici (p / y tuşları): 4 sn boyunca çimdik ölçümlerini toplar
                 if ornekleyici.kayitta and faresi.sol.olcum and ornekleyici.ekle(faresi.sol.olcum, simdi):
                     etiket = next(reversed(ornekleyici.ornekler))
                     mesaj = f"'{etiket}' orneklendi"
@@ -133,6 +141,7 @@ def main():
             satirlar.append("d: olcumler  p/y: ornekle  k: kaydet  q: cikis")
             hud.panel(kare, satirlar, baslik="FARE v3 // GUVENILIR CIMDIK")
 
+            # Tuşlar: d hata ayıklama · p/y poz örnekle · k önerilen eşikleri kaydet
             tus = app.goster(kare)
             if tus == ord("d"):
                 hata_ayiklama = not hata_ayiklama

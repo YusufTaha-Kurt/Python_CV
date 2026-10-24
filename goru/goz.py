@@ -25,6 +25,7 @@ EKRAN_SAG_GOZ = (263, 387, 385, 362, 380, 373)
 
 
 def ear(noktalar, goz):
+    """Bir gözün açıklık oranı (EAR). `goz`: o gözün 6 nokta numarası (p1..p6). Açık ~0.3, kapalı ~0.1."""
     p = noktalar[list(goz), :2]
     yatay = max(float(np.linalg.norm(p[0] - p[3])), 1e-6)
     return float(np.linalg.norm(p[1] - p[5]) + np.linalg.norm(p[2] - p[4])) / (2 * yatay)
@@ -40,10 +41,12 @@ class GozKirpmaAlgilayici:
         "goz_kirp_sol" / "goz_kirp_sag"   Tek göz kırpma (ekranda görünen taraf)
     """
 
-    ISINMA_KARESI = 15
+    ISINMA_KARESI = 15  # Bu kadar kare toplanmadan "açık göz tabanı" oluşmaz, olay üretilmez
 
     def __init__(self, kapanma_orani=0.62, acilma_orani=0.78, dogal_sinir=0.35, uzun_sinir=1.5,
                  tek_goz_min=0.2, tek_goz_max=1.0):
+        # Eşikler tabanın ORANIDIR: EAR tabanın %62'sinin altına inince göz kapandı sayılır,
+        # %78'inin üstüne çıkınca açıldı sayılır. Aradaki boşluk (histerezis) titremeyi önler.
         self.kapanma_orani = kapanma_orani
         self.acilma_orani = acilma_orani
         self.dogal_sinir = dogal_sinir
@@ -53,6 +56,7 @@ class GozKirpmaAlgilayici:
         self.sifirla()
 
     def sifirla(self):
+        """Öğrenilmiş tabanı ve süreleri siler (kişi değişince çağır)."""
         self.ear = [0.0, 0.0]
         self.taban = [None, None]
         self.kapali = [False, False]
@@ -63,16 +67,20 @@ class GozKirpmaAlgilayici:
 
     @property
     def hazir(self):
+        """İki gözün de açık tabanı öğrenildi mi? Değilse `guncelle` olay üretmez."""
         return self.taban[0] is not None and self.taban[1] is not None
 
     @property
     def ikisi_kapali(self):
+        """İki göz de şu an kapalı mı?"""
         return self.kapali[0] and self.kapali[1]
 
     def esikler(self, i):
+        """`i`. gözün (kapanma, açılma) EAR eşikleri."""
         return self.taban[i] * self.kapanma_orani, self.taban[i] * self.acilma_orani
 
     def guncelle(self, noktalar, zaman):
+        """Yüzün 478 noktasını ve zamanı al; bu karede biten göz olaylarının listesini döndür."""
         self.ear = [ear(noktalar, EKRAN_SOL_GOZ), ear(noktalar, EKRAN_SAG_GOZ)]
         for i in (0, 1):
             if self.taban[i] is None:
@@ -82,6 +90,7 @@ class GozKirpmaAlgilayici:
         if not self.hazir:
             return []
 
+        # 1) Her gözün kapalı / açık durumunu güncelle (histerezisli)
         onceki = list(self.kapali)
         for i in (0, 1):
             kapanma, acilma = self.esikler(i)
@@ -94,8 +103,9 @@ class GozKirpmaAlgilayici:
                 self._acik_gecmisi[i].append(self.ear[i])
                 self.taban[i] = float(np.percentile(self._acik_gecmisi[i], 70))
 
+        # 2) Olay üretimi
         olaylar = []
-        # İki göz birlikte
+        # İki göz birlikte: kapalı kalma SÜRESİ olayın türünü belirler (doğal / bilinçli / uzun)
         if self.ikisi_kapali:
             if self._iki_kapali_baslangic is None:
                 self._iki_kapali_baslangic = zaman
@@ -152,11 +162,15 @@ class YorgunlukIzleyici:
 
     @property
     def kirpma_hizi(self):
-        """Son penceredeki göz kırpma sayısı, dakikaya oranlanmış."""
+        """Dakikadaki göz kırpma sayısı. Son penceredeki göz kırpma sayısı, dakikaya oranlanmış."""
         return len(self._kirpmalar) * 60.0 / self.pencere
 
     def guncelle(self, gozler_kapali, olaylar, agiz_acikligi, zaman):
-        """Dönüş: bu karede verilecek uyarılar ("mikro_uyku", "yorgunluk", "esneme")."""
+        """Dönüş: bu karede verilecek uyarılar ("mikro_uyku", "yorgunluk", "esneme").
+
+        gozler_kapali: iki göz kapalı mı; olaylar: GozKirpmaAlgilayici çıktısı;
+        agiz_acikligi: "jawOpen" ifade skoru (0-1).
+        """
         self._kareler.append((zaman, gozler_kapali))
         while self._kareler and zaman - self._kareler[0][0] > self.pencere:
             self._kareler.popleft()
@@ -167,6 +181,7 @@ class YorgunlukIzleyici:
         while self._kirpmalar and zaman - self._kirpmalar[0] > self.pencere:
             self._kirpmalar.popleft()
 
+        # Esneme: ağız uzun süre çok açık kalırsa (konuşma ve gülmeden ayırmak için süre şartı var)
         uyarilar = []
         if agiz_acikligi > self.esneme_esigi:
             if self._esneme_baslangic is None:
@@ -178,6 +193,8 @@ class YorgunlukIzleyici:
         else:
             self._esneme_baslangic, self._esnedi = None, False
 
+        # Yorgunluk uyarısı sık tekrarlanmasın diye `uyari_araligi` kadar bekler;
+        # ilk saniyelerde yeterli veri olmadığı için `en_az_veri` dolmadan verilmez
         veri_suresi = zaman - self._kareler[0][0]
         if "mikro_uyku" in olaylar:
             uyarilar.append("mikro_uyku")

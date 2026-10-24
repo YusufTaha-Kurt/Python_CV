@@ -34,6 +34,7 @@ KLASOR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ekran_goruntu
 
 
 def ekran_goruntusu():
+    """Tüm ekranın görüntüsünü ekran_goruntuleri/ klasörüne kaydeder (gülümseme komutu)."""
     import pyautogui
 
     os.makedirs(KLASOR, exist_ok=True)
@@ -43,6 +44,7 @@ def ekran_goruntusu():
 
 
 def eylemler():
+    """İfade → (açıklama, çalıştırılacak fonksiyon) tablosu. Kendi komutunu eklemek için buraya satır ekle."""
     fare = PyAutoGuiFare()
     return {
         "gulumseme": ("ekran goruntusu", ekran_goruntusu),
@@ -54,6 +56,8 @@ def eylemler():
 
 
 def main():
+    """Ders akışı (her karede): yüz ve eller bulunur → el yüzü kapatıyorsa komutlar duraklar →
+    MimikAlgilayici ifade skorlarını nötr tabana göre ölçeklayıp tetiklenenleri bildirir → komut çalışır."""
     args = arguman_ayraci("Mimik Komutları").parse_args()
     mimik = MimikAlgilayici()
     mimik.kalibre_et()
@@ -77,6 +81,7 @@ def main():
                     if fonksiyon:
                         fonksiyon()
 
+            # Ekran: her ifadenin skoru bir çubukta, kırmızı çizgi tetikleme eşiğidir
             # İfade çubukları: eşik çizgisiyle
             x0, y0 = 15, kare.shape[0] - 30 * len(IFADELER) - 15
             for i, ifade in enumerate(IFADELER):

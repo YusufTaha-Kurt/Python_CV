@@ -22,6 +22,12 @@ VARSAYILAN_ESIK = 0.40
 
 
 class YuzTanima:
+    """İki aşamalı tanıma hattı: önce YuNet yüzü bulur (`bul`), sonra SFace onu vektöre çevirir (`gomme`).
+
+    Bu sınıf kimseyi "tanımaz"; sadece sayısal vektör üretir. Hangi vektörün kime ait olduğunu
+    aşağıdaki KimlikVeritabani karar verir.
+    """
+
     def __init__(self, tespit_esigi=0.85):
         import cv2
 
@@ -30,7 +36,7 @@ class YuzTanima:
         self._boyut = None
 
     def bul(self, kare):
-        """YuNet satırları: [x, y, g, h, 5 nokta (10 sayı), skor]. En büyük yüz önce."""
+        """Karedeki yüzleri bulur (büyükten küçüğe). YuNet satırları: [x, y, g, h, 5 nokta (10 sayı), skor]. En büyük yüz önce."""
         yukseklik, genislik = kare.shape[:2]
         if self._boyut != (genislik, yukseklik):
             self._dedektor.setInputSize((genislik, yukseklik))
@@ -69,9 +75,11 @@ class KimlikVeritabani:
 
     @property
     def isimler(self):
+        """Kayıtlı kişilerin alfabetik listesi."""
         return sorted(self.kisiler)
 
     def ekle(self, isim, gommeler):
+        """Kişiye yeni örnekler ekler (varsa eskilerin yanına) ve diske yazar. Güvenli hâle getirilmiş adı döndürür."""
         isim = guvenli_isim(isim)
         yeni = np.asarray(gommeler, dtype=np.float32).reshape(-1, 128)
         self.kisiler[isim] = np.vstack([self.kisiler[isim], yeni]) if isim in self.kisiler else yeni
@@ -80,6 +88,7 @@ class KimlikVeritabani:
         return isim
 
     def sil(self, isim):
+        """Kişiyi ve dosyasını siler (biyometrik veriyi kaldırmak için)."""
         isim = guvenli_isim(isim)
         self.kisiler.pop(isim, None)
         yol = os.path.join(self.klasor, f"{isim}.npy")
@@ -87,7 +96,11 @@ class KimlikVeritabani:
             os.remove(yol)
 
     def tani(self, gomme):
-        """(isim ya da None, en yüksek benzerlik). Her kişinin en benzer örneği kullanılır."""
+        """(isim ya da None, en yüksek benzerlik). Her kişinin en benzer örneği kullanılır.
+
+        Benzerlik eşiğin altındaysa isim None döner: yani "bu kayıtlı biri değil".
+        `ornekler @ gomme` birim vektörlerde kosinüs benzerliğidir (iç çarpım).
+        """
         en_iyi, en_iyi_benzerlik = None, -1.0
         for isim, ornekler in self.kisiler.items():
             benzerlik = float(np.max(ornekler @ gomme))
@@ -113,6 +126,7 @@ class KayitToplayici:
 
     @property
     def tamam(self):
+        """Hedef örnek sayısına ulaşıldı mı?"""
         return len(self.ornekler) >= self.hedef
 
     def dene(self, gomme, yuz_satiri):

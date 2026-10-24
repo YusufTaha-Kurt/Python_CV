@@ -18,6 +18,8 @@ from collections import deque
 
 import numpy as np
 
+# Üst düzey ifade → MediaPipe blendshape adları. Birden çok ad varsa skorların ortalaması alınır
+# (örn. sol ve sağ dudak köşesi). Yeni bir ifade eklemek için buraya bir satır yeter.
 IFADELER = {
     "gulumseme": ("mouthSmileLeft", "mouthSmileRight"),
     "kas_kaldirma": ("browInnerUp", "browOuterUpLeft", "browOuterUpRight"),
@@ -70,6 +72,7 @@ class MimikAlgilayici:
 
     @property
     def kalibre_ediliyor(self):
+        """Nötr yüz şu an ölçülüyor mu? (Bu sürede komut tetiklenmez.)"""
         return self._kalibrasyon is not None
 
     def kalibre_et(self):
@@ -80,11 +83,13 @@ class MimikAlgilayici:
         self._esik_ustu.clear()
 
     def kalibrasyon_ilerlemesi(self, zaman):
+        """Kalibrasyonun tamamlanma oranı (0-1); bittiyse 1."""
         if not self.kalibre_ediliyor or self._kal_baslangic is None:
             return 0.0 if self.kalibre_ediliyor else 1.0
         return min(1.0, (zaman - self._kal_baslangic) / self.kalibrasyon_suresi)
 
     def _taban_guncelle(self, ifadeler, zaman):
+        """Son 30 sn'lik geçmişin %30'luk diliminden nötr tabanı sürekli yeniden tahmin eder."""
         self._sayac += 1
         if self._sayac % 3:  # Her 3 karede bir örnek yeter
             return
@@ -110,6 +115,7 @@ class MimikAlgilayici:
         if not engel:
             self._taban_guncelle(ifadeler, zaman)
 
+        # Her ifade için: tabana göre ölçekle → eşiği SÜRE boyunca aşarsa bir kez tetikle
         yeni = []
         for ifade, adlar in IFADELER.items():
             degerler = []

@@ -16,6 +16,12 @@ KILITLI, DOGRULANIYOR, ACIK = "kilitli", "dogrulaniyor", "acik"
 
 
 class KapiBekcisi:
+    """Durum makinesi. Kimin kayıtlı sahip olduğunu bilir (`sahipler`); kimlikleri dışarıdan alır.
+
+    Yüz tanımayı kendisi yapmaz: her karede "kimler görüldü" bilgisi gelir (Ders 12 çıktısı),
+    böylece kamera ve model olmadan test edilebilir.
+    """
+
     def __init__(self, sahipler, yol=None, tanima_suresi=1.0, kilit_suresi=30.0, yabanci_suresi=2.0,
                  yabanci_araligi=30.0, red_beklemesi=3.0, canlilik=None):
         self.sahipler = set(sahipler)
@@ -40,6 +46,7 @@ class KapiBekcisi:
         return self.durum == ACIK
 
     def _yayinla(self, ad, **veri):
+        """Olay yolu verilmişse `kapi.*` olayını yayınlar."""
         if self.yol is not None:
             self.yol.yayinla(ad, **veri)
 
@@ -59,6 +66,8 @@ class KapiBekcisi:
         else:
             self._yabanci_baslangic = None
 
+        # KILITLI: sahip tanima_suresi boyunca kesintisiz görülmeli. Reddedildiyse red_beklemesi
+        # kadar beklenir (sürekli denemeyle sistemi zorlamak engellenir).
         if self.durum == KILITLI:
             if sahip is None or zaman < self._bekle_bitis:
                 self._sahip_baslangic = None
@@ -69,6 +78,7 @@ class KapiBekcisi:
                     self.canlilik.baslat(zaman)
                     self._yayinla("kapi.dogrulaniyor", kisi=sahip)
 
+        # DOGRULANIYOR: yüz tanıma tek başına yetmez (fotoğrafla kandırılabilir); canlılık testi sorulur.
         elif self.durum == DOGRULANIYOR:
             sonuc = self.canlilik.guncelle(yuz, zaman)
             if sonuc == "gecti":
@@ -80,6 +90,7 @@ class KapiBekcisi:
                 self._yayinla("kapi.reddedildi", kisi=self.kisi, neden=self.canlilik.neden)
                 self.kisi = None
 
+        # ACIK: sahip göründükçe sayaç yenilenir; kilit_suresi boyunca görünmezse tekrar kilitlenir.
         elif self.durum == ACIK:
             if sahip is not None:
                 self._son_sahip_gorulme = zaman

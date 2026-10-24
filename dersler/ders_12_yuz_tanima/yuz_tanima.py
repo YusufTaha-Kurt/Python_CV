@@ -31,6 +31,7 @@ EN_AZ_ORNEK = 3
 
 
 def yuz_ciz(kare, satir, renk, etiket):
+    """YuNet yüz satırını çizer: kutu, 5 hizalama noktası ve üstte etiket."""
     x, y, g, h = (int(v) for v in satir[:4])
     cv2.rectangle(kare, (x, y), (x + g, y + h), renk, 2, cv2.LINE_AA)
     for i in range(5):  # Gözler, burun, ağız köşeleri: hizalama bu noktalarla yapılır
@@ -40,6 +41,9 @@ def yuz_ciz(kare, satir, renk, etiket):
 
 
 def main():
+    """İki kullanım: (1) `--kaydet İSİM` ile çeşitli açılardan örnek toplayıp kaydol,
+    (2) seçenek yoksa kameradaki yüzleri kayıtlı kişilerle karşılaştırıp tanı.
+    `--listele` ve `--sil` veritabanını yönetir. Hepsi yerel `kimlikler/` klasöründe tutulur."""
     ayrac = arguman_ayraci("Yüz Tanıma")
     ayrac.add_argument("--kaydet", metavar="ISIM", help="Bu isimle yeni kişi kaydet (ya da örnek ekle)")
     ayrac.add_argument("--sil", metavar="ISIM", help="Kişiyi sil")
@@ -64,9 +68,10 @@ def main():
     fps = hud.FpsSayaci()
     app = Uygulama(args, "Yuz Tanima")
     for kare, _ in app.kareler():
-        yuzler = tanima.bul(kare)
+        yuzler = tanima.bul(kare)  # 1) yüzleri bul (en büyük önce)
         for i, satir in enumerate(yuzler[:5]):
-            gomme = tanima.gomme(kare, satir)
+            gomme = tanima.gomme(kare, satir)  # 2) her yüzü 128 sayılık vektöre çevir
+            # 3) Kayıt modunda örnek topla, tanıma modunda veritabanıyla karşılaştır
             if toplayici is not None:
                 if i == 0 and toplayici.dene(gomme, satir):
                     print(f"[KAYIT] örnek {len(toplayici.ornekler)}/{toplayici.hedef}")

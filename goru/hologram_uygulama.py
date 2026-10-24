@@ -18,6 +18,7 @@ GORSEL_UZANTILARI = (".png", ".jpg", ".jpeg", ".webp", ".gif")
 
 
 def argumanlar_ekle(ayrac):
+    """Hologram derslerinin ortak seçeneklerini (port, tarayıcı) argüman ayracına ekler."""
     ayrac.add_argument("--port", type=int, default=8765, help="Yerel sunucu portu (0: boş bir port seç)")
     ayrac.add_argument("--tarayici-acma", action="store_true", help="Tarayıcıyı otomatik açma")
     return ayrac
@@ -37,6 +38,11 @@ def icerik_yukle(masa, klasor):
 
 
 def calistir(args, masa, baslik, icerik_klasoru=None, piramit=False):
+    """Hologram döngüsünü çalıştırır: her karede el takibi → Masa → tarayıcıya yayın.
+
+    `masa`: etkileşim mantığını tutan goru.hologram.Masa. `piramit`: tarayıcıyı baştan
+    dört yönlü Pepper's ghost moduyla aç.
+    """
     ek = {"icerik": icerik_klasoru} if icerik_klasoru else {}
     yayin = CanliYayin(WEB_KLASORU, port=args.port, ek_klasorler=ek, izinli_komutlar={"kart_ekle", "toparla"})
     url = yayin.baslat() + ("?piramit=1" if piramit else "")
@@ -51,11 +57,11 @@ def calistir(args, masa, baslik, icerik_klasoru=None, piramit=False):
             for kare, simdi in app.kareler():
                 yukseklik, genislik = kare.shape[:2]
                 masa.boyutla(genislik, yukseklik)
-                eller = takipci.isle(kare, simdi)
-                masa.guncelle(eller, simdi)
-                for komut in yayin.komutlari_al():
+                eller = takipci.isle(kare, simdi)  # 1) elleri bul
+                masa.guncelle(eller, simdi)  # 2) etkileşim mantığı (tut, fırlat, ölçekle...)
+                for komut in yayin.komutlari_al():  # 3) tarayıcıdan gelen komutlar (kart ekle...)
                     masa.komut(komut)
-                yayin.kare_yayinla(kare)
+                yayin.kare_yayinla(kare)  # 4) videoyu (MJPEG) ve sahne durumunu (SSE) yayınla
                 durum = masa.durum()
                 durum["fps"] = round(fps.tik())
                 yayin.durum_yayinla(durum)

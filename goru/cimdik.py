@@ -31,6 +31,12 @@ from . import jestler as j
 
 @dataclass
 class CimdikAyarlari:
+    """Çimdik eşikleri. Kişiden kişiye el şekli değiştiği için `ayarlar/cimdik.json`'dan yüklenir.
+
+    Mesafelerin hepsi EL BOYUNA oranlıdır (bkz. jestler.el_boyutu); süreler saniyedir.
+    Eşikleri elle ayarlamak yerine Ders 5'teki örnekleyiciyi (p / y / k tuşları) kullan.
+    """
+
     baslama: float = 0.30  # Parmak arası / el boyu: önden bakışta çimdik başlama eşiği
     baslama_profil: float = 0.38  # Avuç yan dönükken (ölçüm daha gürültülü, eşik daha geniş)
     birakma: float = 0.55  # Yavaş elde bırakma eşiği
@@ -60,6 +66,7 @@ class CimdikAyarlari:
         return cls(**{k: v for k, v in veri.items() if k in gecerli})
 
     def kaydet(self, yol):
+        """Ayarları JSON olarak yazar (klasör yoksa oluşturur)."""
         os.makedirs(os.path.dirname(os.path.abspath(yol)), exist_ok=True)
         with open(yol, "w", encoding="utf-8") as dosya:
             json.dump(asdict(self), dosya, indent=2, ensure_ascii=False)
@@ -97,6 +104,7 @@ class GuvenilirCimdik:
         self.sifirla()
 
     def sifirla(self):
+        """Bütün durumu başa alır (el görüş alanından çıkınca çağrılır)."""
         self.aktif = False
         self.hayalet = False
         self.imza = False
@@ -112,9 +120,11 @@ class GuvenilirCimdik:
 
     @property
     def kavrayabilir(self):
+        """Çimdik sürüyor VE hayalet değil: bu çimdikle tıklanabilir / nesne tutulabilir."""
         return self.aktif and not self.hayalet
 
     def _hiz_guncelle(self, nokta, boy, zaman):
+        """Çimdik noktasının hızını EL BOYU / SANİYE olarak hesaplar (son 0.3 sn üzerinden)."""
         self._gecmis.append((zaman, float(nokta[0]), float(nokta[1])))
         while len(self._gecmis) > 2 and zaman - self._gecmis[0][0] > self.HIZ_PENCERESI:
             self._gecmis.popleft()
@@ -123,6 +133,7 @@ class GuvenilirCimdik:
         self.hiz = math.hypot(nokta[0] - x0, nokta[1] - y0) / dt / boy if dt > 0 else 0.0
 
     def guncelle(self, noktalar, zaman):
+        """Her karede çağır. Önce ölçümler ve hız hesaplanır, sonra yukarıdaki 7 katman sırayla uygulanır."""
         a = self.ayar
         o = self.olcum = olcumler(noktalar, self.uc)
         self.nokta = (noktalar[j.BAS_UCU, :2] + noktalar[self.uc, :2]) / 2

@@ -1,7 +1,16 @@
-"""El jestleri: parmak durumları, çimdik, statik jestler ve kaydırma (swipe).
+"""El jestleri: parmak durumları, çimdik, statik jestler ve kaydırma (Ders 2-4).
 
 Bu modül sadece numpy kullanır; girdi olarak (21, 3) boyutlu nokta dizisi alır.
 Bu sayede kamera ve model olmadan, sentetik verilerle test edilebilir.
+
+Akış (aşağıdan yukarıya):
+    1. Ölçüm      mesafe, el_boyutu, kemer_orani, kivrim       (geometri, sayı üretir)
+    2. Karar      parmak_durumlari → jest_tani                 (sayıdan "yumruk", "avuç"...)
+    3. Kararlılık JestKararlilastirici, KaydirmaAlgilayici     (zaman boyunca doğrulama)
+    4. Yayın      JestYayincisi                                (olay yoluna haber verir)
+
+Temel hile: bütün mesafeler EL BOYUNA bölünür. Böylece el kameraya yaklaşsa da uzaklaşsa
+da aynı eşikler çalışır (sabit piksel eşiği V1'in en büyük hatalarından biriydi).
 """
 
 import time
@@ -29,6 +38,7 @@ PARMAKLAR = {
 
 
 def mesafe(noktalar, a, b):
+    """İki nokta arasındaki 2B (piksel) uzaklık. `a`, `b` nokta numaralarıdır (0-20)."""
     return float(np.linalg.norm(noktalar[a, :2] - noktalar[b, :2]))
 
 
@@ -104,6 +114,8 @@ def duz_parmak_sayisi(noktalar):
 
 
 class Jest(Enum):
+    """Tanınan statik jestler. `.value` olay yoluna giden metin adıdır (örn. "yumruk")."""
+
     BILINMIYOR = "bilinmiyor"
     YUMRUK = "yumruk"
     AVUC = "avuc"
@@ -115,7 +127,16 @@ class Jest(Enum):
 
 
 def jest_tani(noktalar):
-    """Parmak durumlarından statik jesti çıkarır."""
+    """Parmak durumlarından statik jesti çıkarır.
+
+    Tablo (A = açık, K = kapalı; sırayla işaret, orta, yüzük, serçe):
+        KKKK             → yumruk (başparmak belirgin yukarıdaysa başparmak yukarı)
+        AAAA + başparmak → avuç
+        AKKK             → işaret (başparmak da açıksa L işareti)
+        AAKK             → zafer
+        AKKA             → rock
+        diğerleri        → bilinmiyor
+    """
     bas, isaret, orta, yuzuk, serce = parmak_durumlari(noktalar)
     dort_parmak = (isaret, orta, yuzuk, serce)
 
@@ -151,7 +172,7 @@ class CimdikAlgilayici:
         self.aktif = False
 
     def guncelle(self, oran):
-        """Durum değiştiyse "basladi" / "bitti", değişmediyse None döndürür."""
+        """`oran`: cimdik_orani() değeri. Durum değiştiyse "basladi" / "bitti", değişmediyse None döndürür."""
         if not self.aktif and oran < self.baslama:
             self.aktif = True
             return "basladi"
@@ -161,6 +182,7 @@ class CimdikAlgilayici:
         return None
 
     def sifirla(self):
+        """Çimdik durumunu bırakılmış yapar (el kaybolduğunda çağır)."""
         self.aktif = False
 
 
@@ -188,6 +210,7 @@ class JestKararlilastirici:
         return None
 
     def sifirla(self):
+        """Jesti unutur (el kaybolduğunda çağır)."""
         self.mevcut = self._aday = Jest.BILINMIYOR
 
 
@@ -223,6 +246,7 @@ class KaydirmaAlgilayici:
         return None
 
     def sifirla(self):
+        """Konum geçmişini siler (avuç kapanınca yarım kalan hareket sayılmasın)."""
         self._gecmis.clear()
 
 
@@ -243,6 +267,7 @@ class JestYayincisi:
         self._durumlar = {}  # taraf -> (JestKararlilastirici, KaydirmaAlgilayici)
 
     def guncelle(self, eller, zaman):
+        """Her karede çağır: `eller` ElTakipci.isle() çıktısı, `zaman` karenin zamanı (sn)."""
         gorulen = {e.taraf: e for e in eller}
         for taraf in list(self._durumlar):
             if taraf not in gorulen:

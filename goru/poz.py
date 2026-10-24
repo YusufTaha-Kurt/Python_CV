@@ -1,4 +1,9 @@
-"""Ders 16: MediaPipe Pose Landmarker ile 33 vücut noktası."""
+"""Ders 16: MediaPipe Pose Landmarker ile 33 vücut noktası.
+
+Noktalar baştan ayağa dağılır (0 burun, 11-12 omuzlar, 13-14 dirsekler, 15-16 bilekler,
+23-24 kalçalar, 25-26 dizler, 27-28 ayak bilekleri). Her nokta için bir de "görünürlük"
+skoru gelir: kadraj dışında ya da kapalı kalan noktaların güvenilmez olduğunu söyler.
+"""
 
 import time
 from dataclasses import dataclass
@@ -16,11 +21,15 @@ POZ_BAGLANTILARI = [(b.start, b.end) for b in vision.PoseLandmarksConnections.PO
 
 @dataclass
 class Poz:
+    """Tek bir kişinin duruşu."""
+
     noktalar: np.ndarray  # (33, 3) piksel
     gorunurluk: np.ndarray  # (33,) 0-1: nokta görünüyor mu (kadraj dışı / kapalıysa düşük)
 
 
 class PozTakipci:
+    """Kareyi alır, bulunan kişinin Poz listesini döndürür (ElTakipci ile aynı kullanım; tek kişi)."""
+
     def __init__(self, tespit_guveni=0.5, takip_guveni=0.5):
         secenekler = vision.PoseLandmarkerOptions(
             base_options=python.BaseOptions(model_asset_path=model_yolu("poz")),
@@ -34,6 +43,7 @@ class PozTakipci:
         self._son_zaman_ms = -1
 
     def isle(self, kare_bgr, zaman=None):
+        """zaman: karenin zamanı (sn)."""
         yukseklik, genislik = kare_bgr.shape[:2]
         goruntu = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(kare_bgr, cv2.COLOR_BGR2RGB))
         zaman_ms = max(int((time.monotonic() if zaman is None else zaman) * 1000), self._son_zaman_ms + 1)
@@ -47,6 +57,7 @@ class PozTakipci:
         return pozlar
 
     def kapat(self):
+        """Modeli serbest bırakır."""
         self._dedektor.close()
 
     def __enter__(self):
@@ -57,6 +68,7 @@ class PozTakipci:
 
 
 def poz_ciz(kare, poz, renk=(255, 220, 0), esik=0.5):
+    """İskeleti çizer; görünürlüğü `esik` altındaki noktalar ve kemikler atlanır."""
     n, g = poz.noktalar, poz.gorunurluk
     for a, b in POZ_BAGLANTILARI:
         if g[a] > esik and g[b] > esik:

@@ -21,6 +21,8 @@ from goru.yuz import YuzTakipci, yuz_ciz
 
 
 def main():
+    """Ders akışı: test başlar (3 rastgele görev) → her karede yüz bulunur → CanlilikTesti görevin
+    yapılıp yapılmadığına bakar → "gecti" / "kaldi". Boşluk tuşu yeni test başlatır."""
     args = arguman_ayraci("Canlılık Testi").parse_args()
     test = CanlilikTesti()
     bildirildi = False
@@ -32,7 +34,7 @@ def main():
                 test.baslat(simdi)
             yuzler = takipci.isle(kare, simdi)
             yuz = yuzler[0] if yuzler else None
-            sonuc = test.guncelle(yuz, simdi)
+            sonuc = test.guncelle(yuz, simdi)  # None: sürüyor, "gecti" ya da "kaldi"
             if yuz is not None:
                 yuz_ciz(kare, yuz)
             if sonuc and not bildirildi:

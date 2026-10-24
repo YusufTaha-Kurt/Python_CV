@@ -1,4 +1,10 @@
-"""Kamera hızından bağımsız, akıcı imleç sürücüsü."""
+"""Kamera hızından bağımsız, akıcı imleç sürücüsü (Ders 2).
+
+Fikir: Kamera 30 kare/sn verir ama ekran 144 kez/sn yenilenir. Ana döngü sadece "imleç
+nereye gitmeli" (hedef) bilgisini bırakır; bu dosyadaki ayrı bir iş parçacığı (thread)
+imleci o hedefe doğru saniyede 144 kez küçük adımlarla kaydırır. Sonuç: kamera takılsa
+bile imleç akar.
+"""
 
 import math
 import threading
@@ -35,11 +41,13 @@ class ImlecSurucu:
         self._thread = None
 
     def hedef_ayarla(self, x, y):
+        """İmlecin gitmesi gereken ekran noktasını (piksel) günceller. Ana döngü her karede çağırır."""
         with self._kilit:
             self._hedef = [float(x), float(y)]
 
     @property
     def donmus(self):
+        """İmleç şu an dondurulmuş mu?"""
         return self._donmus
 
     def dondur(self, durum):
@@ -48,16 +56,19 @@ class ImlecSurucu:
             self._donmus = durum
 
     def baslat(self):
+        """Arka plan iş parçacığını başlatır. `daemon=True`: program kapanınca o da kapanır."""
         self._calisiyor = True
         self._thread = threading.Thread(target=self._dongu, daemon=True)
         self._thread.start()
 
     def durdur(self):
+        """İş parçacığını durdurur ve bitmesini (en çok 1 sn) bekler."""
         self._calisiyor = False
         if self._thread:
             self._thread.join(timeout=1.0)
 
     def _dongu(self):
+        """İş parçacığı gövdesi: saniyede `hz` kez imleci hedefe doğru bir adım yaklaştırır."""
         adim = 1.0 / self.hz
         onceki = time.perf_counter()
         while self._calisiyor:
