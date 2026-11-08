@@ -3,7 +3,7 @@
 ![Testler](https://github.com/YusufTaha-Kurt/Python_CV/actions/workflows/testler.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10-orange)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.13-green)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.13%2B-green)
 
 Standart bir web kamerası, OpenCV ve MediaPipe ile bilgisayarı elle, yüzle ve bedenle yöneten
 sistemler **17 derste** adım adım geliştirildi. Her ders bir öncekinin üstüne kuruldu ve ortak
@@ -13,12 +13,62 @@ yetenekler 7/24 arka planda çalışan, başka uygulamalara eklenebilen tek bir 
 <!-- Demo GIF'i: docs/demo.gif kaydedip aşağıdaki satırın yorumunu kaldır -->
 <!-- ![Demo](docs/demo.gif) -->
 
+## Kurulum
+
+Python 3.10 ya da üstü ve bir web kamerası gerekir.
+
+**Windows (PowerShell)**
+
+```powershell
+git clone https://github.com/YusufTaha-Kurt/Python_CV.git
+cd Python_CV
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+**Mac / Linux**
+
+```bash
+git clone https://github.com/YusufTaha-Kurt/Python_CV.git
+cd Python_CV
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+`requirements.txt` OpenCV, MediaPipe ve PyAutoGUI ile birlikte `goru` paketini de kurar.
+Modeller (yaklaşık 70 MB) ilk çalıştırmada `models/` klasörüne kendiliğinden indirilir.
+
+### Çalıştırma
+
+```bash
+python baslat.py                  # Bütün dersler menüden
+python baslat.py 1 --sadece-izle  # Ders 1, fareye dokunmadan
+```
+
+İlk denemede `--sadece-izle` önerilir. Pencerede **q** ya da **ESC** çıkış yapar.
+Hangi el hareketinin ne yaptığı [OZELLIKLER.md](OZELLIKLER.md) dosyasındadır.
+
+Açılışta kamera birkaç ayarla kısaca ölçülür. Bu cihazda en yüksek FPS'i veren ayar seçilir.
+Seçilen ayar terminale yazılır.  `[Kamera] 1280x720, MSMF, ~30 FPS`
+
+### Sık karşılaşılan sorunlar
+
+| Belirti | Çözüm |
+|---------|-------|
+| `ModuleNotFoundError: No module named 'cv2'` | Paketler kurulmamış. Sanal ortamı açıp `python -m pip install -r requirements.txt` komutunu çalıştırınız. |
+| `Activate.ps1` betik engeline takılıyor | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` komutunu bir kez çalıştırınız. |
+| OpenCV garip hatalar veriyor | `opencv-python` ile `opencv-contrib-python` birlikte kurulmuş olabilir. `pip uninstall opencv-python` ile ilkini kaldırınız. |
+| `Kamera açılamadı` | Kamera başka bir uygulamada açık olabilir. Başka bir kamera için `--kaynak 1` deneyebilirsiniz. |
+| FPS düşük | Terminaldeki `[Kamera]` satırına bakınız. Kamera 30 FPS veriyorsa sınır işlemcidir. Ağır dersler (15, 16, 17) zayıf cihazda daha yavaş çalışır. |
+
 ## Dersler
 
 | # | Ders | Öne çıkanlar |
 |---|------|--------------|
 | | **Faz 1: Eller** | |
-| 1 | [El Kontrollü Fare V1](faz-1-mouse-kontrol/) | MediaPipe el iskeleti, çimdikle tıklama, yumrukla uyku modu |
+| 1 | [El Kontrollü Fare V1](dersler/ders_01_fare_v1/) | MediaPipe el iskeleti, çimdikle tıklama, yumrukla uyku modu |
 | 2 | [Fare V2: Akışkanlık](dersler/ders_02_fare_v2/) | Takılmanın kök nedeni bulundu, 1€ filtresi, 144 Hz imleç thread'i |
 | 3 | [Jest Merkezi ve Olay Yolu](dersler/ders_03_jest_merkezi/) | 7 statik jest + kaydırma, yayınla-abone ol mimarisi |
 | 4 | [Medya ve Ses Kontrolü](dersler/ders_04_medya_kontrol/) | Parmak mesafesiyle ses seviyesi, jestle medya |
@@ -59,6 +109,7 @@ Testler de bir belgedir: `tests/` altındaki sentetik veriler her modülün nas�
 | Ders | Ölçüm | Önce | Sonra |
 |------|-------|------|-------|
 | 2 | Döngü üst sınırı | ~10 FPS (`pyautogui.PAUSE` her çağrıda 100 ms uyutuyordu) | Kamera hızı |
+| 2 | Kamera (720p, MJPG'yi yok sayan webcam) | 10 FPS (DirectShow, YUY2) | **30 FPS** (en hızlı ayar ölçülerek seçildi) |
 | 2 | Dururken titreme / hızlı harekette gecikme | 0.0016 / %3.3 ekran | **0.0008 / %1.7 ekran** |
 | 5 | Gerçek videoda sahte çimdik başlangıcı (yumruk, yüze dokunma) | 12 | **2** |
 | 11 | Gerçek videoda kasıtsız ifade komutu | 3 | **1** |
@@ -88,28 +139,9 @@ abone olarak bu modülü kendi özelliği gibi kullanabilir: [Ders 17](dersler/d
 projesinden esinlendi; teknikler incelendi, kod bu repo için piksel uzayında yeniden yazıldı:
 [docs/referanslar/barehands_analizi.md](docs/referanslar/barehands_analizi.md)
 
-## Kurulum
+## Seçenekler
 
-```bash
-git clone https://github.com/YusufTaha-Kurt/Python_CV.git
-cd Python_CV
-python -m venv .venv
-.\.venv\Scripts\activate          # Mac/Linux: source .venv/bin/activate
-pip install -r requirements.txt   # goru paketini de kurar
-```
-
-Modeller (toplam ~70 MB) ilk kullanımda `models/` klasörüne otomatik indirilir.
-
-## Çalıştırma
-
-```bash
-python baslat.py                  # Tüm dersler menüden
-python baslat.py 5 --sadece-izle  # Ders 5'i fareye dokunmadan dene
-```
-
-Hangi el hareketinin ne yaptığını unutursan [OZELLIKLER.md](OZELLIKLER.md) dosyasına bak.
-
-Her ders aynı seçenekleri destekler:
+Her ders aynı seçenekleri destekler.
 
 | Seçenek | İşi |
 |---------|-----|
@@ -118,14 +150,12 @@ Her ders aynı seçenekleri destekler:
 | `--pencere-yok` | Görüntü penceresi açmadan çalış |
 | `--kare-limiti 300` | Bu kadar kare işleyip çık |
 
-Pencerede **q** ya da **ESC** çıkış yapar.
-
 ## Testler
 
 ```bash
 pytest -m "not uctan_uca"   # Birim testleri: kamera ve model gerekmez, CI'da çalışır
 pytest -m uctan_uca         # Her dersi gerçek modellerle videolar / fotoğraflar üzerinde çalıştırır
-pytest                      # Hepsi (164 test)
+pytest                      # Hepsi (170 test)
 ```
 
 Birim testleri sentetik el, yüz ve vücut verisiyle çalışır: çimdik katmanları, hologram fiziği,
@@ -137,7 +167,7 @@ testler örnek fotoğraflardan video üretip her dersi gerçek MediaPipe ve Open
 
 ```
 goru/                     Ortak çekirdek paket
-  kamera.py, uygulama.py    Kare kaynağı (kamera / video / görsel) ve ders iskeleti
+  kamera.py, uygulama.py    Kare kaynağı (en hızlı kamera ayarı / video / görsel), ders iskeleti
   el.py, yuz.py, poz.py     MediaPipe el (21), yüz (478 + 52 ifade), vücut (33) takibi
   nesne.py, takip.py        EfficientDet nesne tespiti, IoU ile ID takibi
   jestler.py, cimdik.py     Jestler, kaydırma, 7 katmanlı güvenilir çimdik
@@ -152,8 +182,7 @@ goru/                     Ortak çekirdek paket
   egzersiz.py               Eklem açıları, tekrar sayacı, duruş bekçisi
   yetenekler.py, servis.py  7/24 servis ve yetenekleri
   olaylar.py, hud.py        Olay yolu, ekran göstergeleri
-dersler/                  Ders 2-17 (her biri kendi README'siyle)
-faz-1-mouse-kontrol/      Ders 1 (V1, arşiv)
+dersler/                  Ders 1-17 (her biri kendi README'siyle)
 tests/                    Birim ve uçtan uca testler
 docs/referanslar/         İncelenen açık kaynak projelerin analizleri
 baslat.py                 Ders menüsü

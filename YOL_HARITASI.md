@@ -16,8 +16,8 @@ yeniden kullanılabilir bir modül ekler ve kamera gerektirmeyen kısımlar test
 
 | # | Ders | Pakete eklenen | Öğrenilen kavramlar |
 |---|------|----------------|---------------------|
-| 1 | El kontrollü fare V1 | - | El iskeleti (21 nokta), koordinat dönüşümü, PyAutoGUI |
-| 2 | Fare V2: akışkanlık | `kamera`, `el`, `filtreler`, `imlec`, `hud` | 1€ filtresi, thread'ler, gecikme analizi, histerezis |
+| 1 | El kontrollü fare V1 | - (ortak `kamera`, `el`, `hud` kullanılır) | El iskeleti (21 nokta), koordinat dönüşümü, PyAutoGUI |
+| 2 | Fare V2: akışkanlık | `kamera`, `el`, `filtreler`, `imlec`, `hud` | 1€ filtresi, thread'ler, gecikme analizi, histerezis, en hızlı kamera ayarını ölçerek seçme |
 | 3 | Jest merkezi ve olay yolu | `jestler`, `olaylar` | Kural tabanlı sınıflandırma, kenar tetikleme, yayınla-abone ol |
 | 4 | Medya ve ses kontrolü | `ses`, `medya` | Windows Core Audio (pycaw), sürekli ve ayrık kontrol |
 | 5 | Güvenilir çimdik ve Fare V3 | `cimdik`, `fare`, `ornekleyici` | Yanlış tetiklemeye karşı katmanlı çimdik, tıklama durum makinesi, veriyle eşik ayarı |

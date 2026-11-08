@@ -7,11 +7,13 @@ Unuttuğunda buraya bak. Ayrıntı için ilgili dersin README'sine git.
 
 | Hareket | İşlev | Ders |
 |---|---|---|
-| İşaret parmağı ucu | İmleç | 1-5 |
+| Başparmak ucu | İmleç | 1 |
+| Başparmak + işaret çimdiği | Tık (iki kez hızlı: basılı tut / sürükle) | 1 |
+| İşaret parmağı | İmleç | 2-5 |
 | OK çimdiği (kısa) | Sol tık (iki kez hızlı: çift tık) | 5 |
 | OK çimdiği (basılı tut + hareket) | Sürükle | 5 |
 | Başparmak + orta parmak çimdiği | Sağ tık | 2, 5 |
-| Yumruk (0.5 sn) | Uyku modu aç / kapa | 2-8 |
+| Yumruk (0.5 sn) | Uyku modu aç / kapa | 1-8 |
 | L işareti (başparmak + işaret) | Ses modu: iki parmak arası mesafe = ses seviyesi | 4 |
 | Avuç aç | Ses modundan çık | 4 |
 | Avuçla sağa / sola kaydır | Sonraki / önceki parça | 4 |

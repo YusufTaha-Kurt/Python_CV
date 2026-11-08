@@ -23,6 +23,11 @@ titremeyi ve yanlış tıklamaları ölçüp kök nedenlerini düzeltmek.
    (başlama < 0.25, bırakma > 0.38).
 6. **Uyku modu titriyordu.** Yumruk tutuldukça her saniye aç/kapa oluyordu. Çözüm:
    `JestKararlilastirici` ile kenar tetikleme. Jest sadece *değiştiğinde* bir kez sayılır.
+7. **Kamera 720p'de 10 FPS veriyordu.** Bazı webcam'ler DirectShow ile açılınca MJPG
+   isteğini yok sayar ve sıkıştırılmamış YUY2'de kalır. Kamera "60 FPS" bildirse de gerçekte
+   10 FPS gelir. Çözüm: `Kamera` açılışta birkaç ayarı (DirectShow / Media Foundation,
+   720p / 480p) kısaca ölçer ve en yüksek FPS'i vereni seçer. Aynı kamera MSMF ile 720p'de
+   30 FPS verdi ([kamera.py](../../goru/kamera.py)).
 
 ## Ölçümler
 
@@ -31,6 +36,7 @@ titremeyi ve yanlış tıklamaları ölçüp kök nedenlerini düzeltmek.
 | Dururken titreme (std) | 0.0016 | 0.0008 |
 | 1 ekran/sn harekette gecikme | %3.3 ekran | %1.7 ekran |
 | İmleç güncelleme | ≤10 Hz | 144 Hz |
+| Kamera (720p, MJPG'yi yok sayan webcam) | 10 FPS | 30 FPS |
 
 Kaynak: `tests/test_filtreler.py::test_v1_yumusatmasindan_hem_stabil_hem_hizli`
 
@@ -52,7 +58,7 @@ V2'de çimdik doğrudan **sol tuşu basılı tutmak** demek:
 ```bash
 python dersler/ders_02_fare_v2/fare_v2.py
 python dersler/ders_02_fare_v2/fare_v2.py --sadece-izle   # fareyi oynatmadan dene
-python dersler/ders_02_fare_v2/fare_v2.py --el sol --kamera 1
+python dersler/ders_02_fare_v2/fare_v2.py --el sol --kaynak 1
 ```
 
 Ayarlar dosyanın başındadır: `FILTRE_MIN_KESIM` (dururken titreme), `FILTRE_BETA`
