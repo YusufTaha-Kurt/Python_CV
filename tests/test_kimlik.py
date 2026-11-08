@@ -6,7 +6,7 @@ import pytest
 
 from goru.canlilik import CanlilikTesti
 from goru.kapi import ACIK, DOGRULANIYOR, KILITLI, KapiBekcisi
-from goru.kimlik import KayitToplayici, KimlikVeritabani, guvenli_isim
+from goru.kimlik import KimlikVeritabani, YonluKayit, guvenli_isim, yuz_yonu
 from goru.olaylar import OlayYolu
 
 from test_yuz import donusum, goz_yuzu
@@ -51,14 +51,58 @@ def test_guvenli_isim_bos():
         guvenli_isim("../")
 
 
-def test_kayit_toplayici_cesitlilik_ister():
-    toplayici = KayitToplayici(hedef=3, cesitlilik=0.93)
-    satir = np.array([0, 0, 120, 120] + [0] * 10 + [0.95])
-    v = kisi_vektorleri(5, 3, gurultu=0.6)
-    assert toplayici.dene(v[0], satir)
-    assert not toplayici.dene(v[0], satir)  # Aynısı: atlanır
-    assert not toplayici.dene(v[1], np.array([0, 0, 40, 40] + [0] * 10 + [0.95]))  # Çok küçük yüz
-    assert toplayici.dene(v[1], satir) and toplayici.dene(v[2], satir) and toplayici.tamam
+def yunet_satiri(yatay=0.0, dikey=0.0, boyut=120):
+    """Sentetik YuNet satırı: gözler 60 px aralıklı; burun yatayda `yatay` göz arası,
+    dikeyde göz-ağız arasının `0.5 + dikey` kadarı aşağıda."""
+    goz1, goz2 = (100, 100), (160, 100)
+    burun = (130 + 60 * yatay, 100 + 60 * (0.5 + dikey))
+    agiz1, agiz2 = (110, 160), (150, 160)
+    return np.array([70, 60, boyut, boyut, *goz1, *goz2, *burun, *agiz1, *agiz2, 0.95], dtype=np.float32)
+
+
+def test_yuz_yonu():
+    assert yuz_yonu(yunet_satiri()) == pytest.approx((0.0, 0.5))
+    assert yuz_yonu(yunet_satiri(yatay=-0.2, dikey=0.1)) == pytest.approx((-0.2, 0.6))
+
+
+def test_yonlu_kayit_adim_adim_ilerler():
+    kayit = YonluKayit()
+    v = iter(kisi_vektorleri(5, 40, gurultu=0.6))
+    t = 0.0
+
+    def dene(satir):
+        nonlocal t
+        t += 0.1
+        return kayit.dene(next(v), satir, t)
+
+    assert kayit.komut == "Kameraya duz bak"
+    assert not dene(yunet_satiri(boyut=40))  # Çok küçük yüz
+    assert all(dene(yunet_satiri()) for _ in range(3))
+    assert kayit.adimlar[kayit.adim][0] == "sol"
+    assert not dene(yunet_satiri(yatay=0.2))  # Yanlış yön: alınmaz
+    assert dene(yunet_satiri(yatay=-0.2)) and dene(yunet_satiri(yatay=-0.2))
+    assert dene(yunet_satiri(yatay=0.2)) and dene(yunet_satiri(yatay=0.2))
+    assert dene(yunet_satiri(dikey=-0.12)) and dene(yunet_satiri(dikey=-0.12))
+    assert dene(yunet_satiri(dikey=0.12)) and dene(yunet_satiri(dikey=0.12))
+    assert kayit.tamam and len(kayit.ornekler) == kayit.hedef == 11
+
+
+def test_yonlu_kayit_aci_yakalanamazsa_takilmaz():
+    """Kullanıcı başını yeterince çeviremese de adım süresi dolunca örnek alınır."""
+    kayit = YonluKayit(adim_suresi=8.0)
+    v = kisi_vektorleri(6, 10, gurultu=0.6)
+    for i in range(3):
+        kayit.dene(v[i], yunet_satiri(), i * 0.1)
+    assert not kayit.dene(v[3], yunet_satiri(yatay=-0.03), 1.0)  # Adım başladı, açı yetersiz
+    assert not kayit.dene(v[4], yunet_satiri(yatay=-0.03), 5.0)
+    assert kayit.dene(v[5], yunet_satiri(yatay=-0.03), 9.5)  # 8 sn doldu
+
+
+def test_yonlu_kayit_ayni_kareyi_almaz():
+    kayit = YonluKayit()
+    v = kisi_vektorleri(7, 1)[0]
+    assert kayit.dene(v, yunet_satiri(), 0.0)
+    assert not kayit.dene(v, yunet_satiri(), 0.1)
 
 
 # --- Canlılık ---

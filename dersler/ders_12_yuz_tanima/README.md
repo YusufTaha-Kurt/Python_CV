@@ -23,17 +23,52 @@
 SFace'in önerdiği eşik 0.363'tür. Kapı bekçisinde yanlış kabul daha pahalı olduğu için
 **0.40** kullanılıyor (`--esik` ile değiştirilebilir); iki dağılım arasında yine geniş bir boşluk var.
 
-## Kayıt: çeşitlilik
+## Kayıt: adım adım farklı açılar
 
-Birbirinin aynısı 12 örnek, tek bir örnekten daha iyi değildir. `KayitToplayici` yeni bir
-örneği ancak mevcutların hepsine benzerliği 0.93'ün altındaysa ekler. Kayıt sırasında başını
-yavaşça çevirdikçe farklı açılar birikir. Küçük (< 80 px) ve düşük güvenli yüzler atlanır.
+Birbirinin aynısı 12 örnek, tek bir örnekten daha iyi değildir. Tanıma, kayıtta görülmüş
+açılara yakın açılarda güvenilirdir. Kayıt bu yüzden beş adımda yönlendirilir (`YonluKayit`).
+
+| Adım | Ekranda yazan | Örnek |
+|------|---------------|-------|
+| 1 | Kameraya düz bak | 3 |
+| 2 | Başını yavaşça SOLA çevir | 2 |
+| 3 | Başını yavaşça SAĞA çevir | 2 |
+| 4 | Başını hafifçe YUKARI kaldır | 2 |
+| 5 | Başını hafifçe AŞAĞI indir | 2 |
+
+Baş yönü YuNet'in 5 noktasından kabaca hesaplanır. Burnun iki gözün ortasından yana kayması
+yatay, göz çizgisi ile ağız arasındaki yeri dikey yönü verir. İlk adımdaki düz bakış taban
+alınır. Sonraki adımlarda örnek ancak baş istenen yöne yeterince döndüğünde alınır.
+
+Bir açı 8 saniyede yakalanamazsa (kamera açısı, gözlük) o adımda açıya bakılmadan örnek alınır.
+Kayıt hiçbir adımda takılı kalmaz. Küçük (80 px altı) yüzler ve birebir aynı kareler atlanır.
+
+İlk sürümde yön söylenmiyordu. Birbirine benzeyen kareler sessizce atlandığı için kayıt
+ilerlemiyor ve neyin yanlış gittiği anlaşılmıyordu.
 
 ## Kullanım
 
+En kolayı menüden.
+
 ```bash
-python dersler/ders_12_yuz_tanima/yuz_tanima.py --kaydet Yusuf   # kayıt
-python dersler/ders_12_yuz_tanima/yuz_tanima.py                  # tanıma
+python baslat.py 12
+```
+
+| Seçim | Komut | Ne yapar |
+|-------|-------|----------|
+| 1 Tanı | *(seçeneksiz)* | Kameradaki yüzü kayıtlı kişilerle karşılaştırır |
+| 2 Kaydol | `--kaydet İSİM` | Yeni kişi kaydeder. İsim kayıtlıysa eski örneklere yenilerini ekler. |
+| 3 Yeniden kaydol | `--yeniden İSİM` | Eski kaydı silip baştan kaydeder |
+| 4 Listele | `--listele` | Kayıtlı kişileri ve örnek sayılarını gösterir |
+| 5 Sil | `--sil İSİM` | Kişinin kaydını siler |
+
+Kaydın sonucu beğenilmezse (tanıma eşiğe yakın kalıyorsa) "Yeniden kaydol" ile baştan
+yapılabilir. Farklı ışıkta "Kaydol" ile örnek eklemek de tanımayı güçlendirir.
+
+```bash
+python dersler/ders_12_yuz_tanima/yuz_tanima.py --kaydet Yusuf
+python dersler/ders_12_yuz_tanima/yuz_tanima.py --yeniden Yusuf
+python dersler/ders_12_yuz_tanima/yuz_tanima.py
 python dersler/ders_12_yuz_tanima/yuz_tanima.py --listele
 python dersler/ders_12_yuz_tanima/yuz_tanima.py --sil Yusuf
 ```

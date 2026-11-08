@@ -109,31 +109,117 @@ class KimlikVeritabani:
         return (en_iyi if en_iyi_benzerlik >= self.esik else None), en_iyi_benzerlik
 
 
-class KayitToplayici:
-    """Bir kişiden çeşitli açılardan örnek toplar.
+def yuz_yonu(yuz_satiri):
+    """YuNet'in 5 noktasından kabaca baş yönü: (yatay, dikey).
 
-    Birbirinin aynısı 15 örnek, tek bir örnekten daha iyi değildir. Yeni örnek ancak mevcut
-    örneklerin hepsinden yeterince farklıysa eklenir: kullanıcı başını hafifçe çevirdikçe
-    farklı açılar birikir.
+    yatay: Burnun iki gözün ortasından yana kayması, göz arası mesafeye oranla. Aynalı
+           görüntüde baş kullanıcının soluna dönünce eksi, sağına dönünce artı olur.
+    dikey: Burnun göz çizgisi ile ağız arasındaki yeri (0 göz, 1 ağız). Baş yukarı kalkınca
+           küçülür, aşağı inince büyür.
+    Mutlak değerler kişiden kişiye değişir; YonluKayit bunları "düz bakış" tabanına göre kullanır.
+    """
+    s = np.asarray(yuz_satiri, dtype=np.float32)
+    goz1, goz2, burun, agiz1, agiz2 = s[4:6], s[6:8], s[8:10], s[10:12], s[12:14]
+    goz_orta, agiz_orta = (goz1 + goz2) / 2, (agiz1 + agiz2) / 2
+    goz_arasi = max(float(np.linalg.norm(goz2 - goz1)), 1e-6)
+    yatay = float(burun[0] - goz_orta[0]) / goz_arasi
+    dikey = float(burun[1] - goz_orta[1]) / max(float(agiz_orta[1] - goz_orta[1]), 1e-6)
+    return yatay, dikey
+
+
+# (ad, ekranda gösterilecek komut, örnek sayısı)
+KAYIT_ADIMLARI = (
+    ("orta", "Kameraya duz bak", 3),
+    ("sol", "Basini yavasca SOLA cevir", 2),
+    ("sag", "Basini yavasca SAGA cevir", 2),
+    ("yukari", "Basini hafifce YUKARI kaldir", 2),
+    ("asagi", "Basini hafifce ASAGI indir", 2),
+)
+
+
+class YonluKayit:
+    """Kullanıcıyı adım adım yönlendirerek farklı açılardan örnek toplar.
+
+    Eski toplayıcı hiçbir yön söylemiyordu ve birbirine benzeyen kareleri sessizce atlıyordu;
+    kullanıcı neyi yanlış yaptığını bilemiyordu. Burada her adımda ekranda ne yapılacağı yazar.
+    Örnek, baş istenen yöne yeterince döndüğünde alınır. Bir adımda `adim_suresi` içinde
+    istenen açı yakalanamazsa (kamera açısı, gözlük) o adımda açıya bakılmadan örnek alınır,
+    böylece kayıt hiçbir adımda takılı kalmaz.
     """
 
-    def __init__(self, hedef=12, cesitlilik=0.93, en_kucuk_yuz=80, en_dusuk_skor=0.9):
-        self.hedef = hedef
-        self.cesitlilik = cesitlilik
+    def __init__(self, adimlar=KAYIT_ADIMLARI, yatay_esigi=0.10, dikey_esigi=0.07, ayni_ornek=0.97,
+                 adim_suresi=8.0, en_kucuk_yuz=80, en_dusuk_skor=0.9):
+        self.adimlar = adimlar
+        self.yatay_esigi = yatay_esigi
+        self.dikey_esigi = dikey_esigi
+        self.ayni_ornek = ayni_ornek
+        self.adim_suresi = adim_suresi
         self.en_kucuk_yuz = en_kucuk_yuz
         self.en_dusuk_skor = en_dusuk_skor
         self.ornekler = []
+        self.adim = 0
+        self._adim_ornegi = 0
+        self._adim_baslangic = None
+        self._orta_yonler = []
+        self.taban = None  # Düz bakıştaki (yatay, dikey)
+        self.yon = (0.0, 0.0)  # Son karedeki yön, tabana göre
+
+    @property
+    def hedef(self):
+        return sum(adet for *_, adet in self.adimlar)
 
     @property
     def tamam(self):
-        """Hedef örnek sayısına ulaşıldı mı?"""
-        return len(self.ornekler) >= self.hedef
+        return self.adim >= len(self.adimlar)
 
-    def dene(self, gomme, yuz_satiri):
-        """Örnek uygunsa ekler ve True döndürür."""
+    @property
+    def komut(self):
+        """Şu an ekranda gösterilecek yönerge."""
+        return "Tamam" if self.tamam else self.adimlar[self.adim][1]
+
+    def kalan_sure(self, zaman):
+        """Bu adımda açıya bakılmadan örnek alınmaya başlanana kadar kalan süre (sn)."""
+        if self._adim_baslangic is None:
+            return self.adim_suresi
+        return max(0.0, self.adim_suresi - (zaman - self._adim_baslangic))
+
+    def _istenen_yonde(self, ad):
+        yatay, dikey = self.yon
+        return {
+            "orta": abs(yatay) < self.yatay_esigi and abs(dikey) < self.dikey_esigi,
+            "sol": yatay < -self.yatay_esigi,
+            "sag": yatay > self.yatay_esigi,
+            "yukari": dikey < -self.dikey_esigi,
+            "asagi": dikey > self.dikey_esigi,
+        }[ad]
+
+    def dene(self, gomme, yuz_satiri, zaman):
+        """Örnek bu adıma uygunsa ekler ve True döndürür."""
+        if self.tamam:
+            return False
+        if self._adim_baslangic is None:
+            self._adim_baslangic = zaman
         if min(yuz_satiri[2], yuz_satiri[3]) < self.en_kucuk_yuz or yuz_satiri[-1] < self.en_dusuk_skor:
             return False
-        if any(float(gomme @ g) > self.cesitlilik for g in self.ornekler):
+        ad, _, adet = self.adimlar[self.adim]
+        ham = yuz_yonu(yuz_satiri)
+        if ad == "orta" and self.taban is None:
+            self.yon = (0.0, 0.0)  # Taban henüz yok: düz bakış adımında her yön kabul
+        else:
+            taban = self.taban if self.taban is not None else ham
+            self.yon = (ham[0] - taban[0], ham[1] - taban[1])
+        sure_doldu = zaman - self._adim_baslangic >= self.adim_suresi
+        if not (sure_doldu or ad == "orta" or self._istenen_yonde(ad)):
             return False
+        if any(float(gomme @ g) > self.ayni_ornek for g in self.ornekler):
+            return False  # Birebir aynı kare: bir şey katmaz
         self.ornekler.append(gomme)
+        if ad == "orta":
+            self._orta_yonler.append(ham)
+            self.taban = tuple(np.median(np.array(self._orta_yonler), axis=0))
+        self._adim_ornegi += 1
+        if self._adim_ornegi >= adet:
+            self.adim += 1
+            self._adim_ornegi = 0
+            self._adim_baslangic = None
         return True
