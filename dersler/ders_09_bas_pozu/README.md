@@ -1,5 +1,9 @@
 # Ders 9: Yüz İskeleti ve Baş Pozu
 
+> **Ekstra ders.** Başla imleç, elini kullanamayan kişiler için erişilebilirlik aracıdır.
+> El kontrolü olan biri için günlük kullanımda karşılığı yoktur. Yüz iskeleti ve baş pozu
+> sonraki derslerin (göz, mimik, canlılık) temelidir.
+
 **Amaç:** Yüzün 478 noktasını ve başın uzaydaki yönünü (yaw / pitch / roll) bulmak, sonra
 bununla ellere hiç ihtiyaç duymayan bir fare yapmak.
 

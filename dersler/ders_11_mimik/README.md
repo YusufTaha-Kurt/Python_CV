@@ -1,5 +1,8 @@
 # Ders 11: Mimik Komutları
 
+> **Ekstra ders.** Çalışır, ama yüz ifadesiyle komut vermek herkesin gündelik ihtiyacı değildir.
+> 7/24 serviste `mimik` yeteneği varsayılan olarak kapalıdır.
+
 **Amaç:** Yüz ifadeleriyle bilgisayara komut vermek ve bunu gerçek hayatta yanlış
 tetiklenmeyecek kadar sağlam yapmak.
 

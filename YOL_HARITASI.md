@@ -7,6 +7,8 @@ tasarlanır (bkz. Ders 17).
 
 Hangi hareketin ne yaptığını tek sayfada görmek için: [OZELLIKLER.md](OZELLIKLER.md).
 
+*(ekstra)* işaretli dersler öğreticidir ama gündelik kullanım için değildir. Menüde (`baslat.py`) ayrı grupta durur.
+
 **İlke:** Görüntü katmanı sadece olay yayınlar, eylemi aboneler yapar. Her ders `goru/` paketine
 yeniden kullanılabilir bir modül ekler ve kamera gerektirmeyen kısımlar test edilir.
 
@@ -21,17 +23,17 @@ yeniden kullanılabilir bir modül ekler ve kamera gerektirmeyen kısımlar test
 | 3 | Jest merkezi ve olay yolu | `jestler`, `olaylar` | Kural tabanlı sınıflandırma, kenar tetikleme, yayınla-abone ol |
 | 4 | Medya ve ses kontrolü | `ses`, `medya` | Windows Core Audio (pycaw), sürekli ve ayrık kontrol |
 | 5 | Güvenilir çimdik ve Fare V3 | `cimdik`, `fare`, `ornekleyici` | Yanlış tetiklemeye karşı katmanlı çimdik, tıklama durum makinesi, veriyle eşik ayarı |
-| 6 | Hologram masası I | `hologram`, `web` | Python takip + tarayıcıda 3D sahne (three.js), MJPEG ve SSE ile canlı yayın, tut-taşı, fırlatma fiziği, iki elle ölçek |
-| 7 | Hologram masası II | `hologram` | Pençe ile uzaktan çekme, alkış, 3D model döndürme ve patlatma, piramit (Pepper's ghost) modu |
+| 6 | Hologram masası I *(ekstra)* | `hologram`, `web` | Python takip + tarayıcıda 3D sahne (three.js), MJPEG ve SSE ile canlı yayın, tut-taşı, fırlatma fiziği, iki elle ölçek |
+| 7 | Hologram masası II *(ekstra)* | `hologram` | Pençe ile uzaktan çekme, alkış, 3D model döndürme ve patlatma, piramit (Pepper's ghost) modu |
 | 8 | Kontrol merkezi ve hava çizimi | `kisayollar`, `modlar` | İki parmakla kaydırma, sanal masaüstü ve pencere yönetimi, mod makinesi, parmakla çizim |
 
 ## Faz 2: Yüz
 
 | # | Ders | Pakete eklenen | Öğrenilen kavramlar |
 |---|------|----------------|---------------------|
-| 9 | Yüz iskeleti ve baş pozu | `yuz`, `bas_pozu` | Face Landmarker (478 nokta), `solvePnP` ile baş yönü, bakarak tıklama |
+| 9 | Yüz iskeleti ve baş pozu *(ekstra)* | `yuz`, `bas_pozu` | Face Landmarker (478 nokta), `solvePnP` ile baş yönü, bakarak tıklama |
 | 10 | Göz kırpma ve yorgunluk | `goz` | Göz açıklık oranı (EAR), uyarlanır eşik, göz kırparak tıklama, PERCLOS ile yorgunluk alarmı |
-| 11 | Mimik komutları | `mimik` | 52 ifade skoru (blendshape), nötr yüz kalibrasyonu, ifadeyle komut |
+| 11 | Mimik komutları *(ekstra)* | `mimik` | 52 ifade skoru (blendshape), nötr yüz kalibrasyonu, ifadeyle komut |
 
 ## Faz 3: Kimlik (Kapı Bekçisi)
 

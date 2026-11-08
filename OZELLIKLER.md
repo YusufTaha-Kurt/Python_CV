@@ -21,13 +21,13 @@ Unuttuğunda buraya bak. Ayrıntı için ilgili dersin README'sine git.
 | Bozkurt işareti (işaret + serçe dik, başparmak orta ve yüzük uçlarına değer) | Sesi kapat / aç | 4 |
 | Sol elle 1 / 2 / 3 parmak (0.6 sn) | Mod seç: Fare / Medya / Pencere | 8 |
 | **Pencere modu:** Kardeşlik + yukarı / aşağı | Sayfayı kaydır | 8 |
-| Avuçla sola / sağa kaydır | Sağdaki / soldaki sanal masaüstü | 8 |
+| Avuçla sağa / sola kaydır | Sağdaki / soldaki sanal masaüstü | 8 |
 | Onay (başparmak yukarı) / Bozkurt / L | Pencere büyüt / küçült / Alt+Tab | 8 |
 | **Hava çizimi:** sadece işaret parmağı | Çiz | 8 |
 | Kardeşlik (işaret + orta) | Kalemi kaldır, paletten renk seç | 8 |
 | Açık avuç (0.8 sn) | Tuvali temizle | 8 |
 
-## Hologram masası (Ders 6-7)
+## Hologram masası (Ders 6-7, ekstra)
 
 | Hareket | İşlev |
 |---|---|
@@ -45,22 +45,22 @@ Unuttuğunda buraya bak. Ayrıntı için ilgili dersin README'sine git.
 
 | Hareket | İşlev | Ders |
 |---|---|---|
-| Başı çevir | İmleç hareketi (eller serbest) | 9 |
-| İmleci 1 sn tut | Tıkla | 9 |
-| Bilinçli göz kırpma (0.35-1.5 sn) | Sol tık (`--fare`) | 10 |
-| Tek göz kırpma | Sağ tık (`--fare`) | 10 |
-| Gözler 1.5 sn kapalı | Mikro uyku uyarısı | 10 |
+| Gözler 3 dk kapalı (`--mikro-uyku` ile değişir) | Mikro uyku uyarısı | 10 |
 | PERCLOS > %15 | Yorgunluk uyarısı | 10 |
-| Gülümse | Ekran görüntüsü | 11 |
-| Kaş kaldır / çat | Yukarı / aşağı kaydır | 11 |
-| Ağzını aç | Oynat / duraklat | 11 |
-| Dudak büz | Sesi kapat / aç | 11 |
+| *Ekstra:* Başı çevir | İmleç hareketi (eller serbest) | 9 |
+| *Ekstra:* İmleci 1 sn tut | Tıkla | 9 |
+| *Ekstra:* Bilinçli göz kırpma (0.35-1.5 sn) | Sol tık (`10f`) | 10 |
+| *Ekstra:* Tek göz kırpma | Sağ tık (`10f`) | 10 |
+| *Ekstra:* Gülümse | Ekran görüntüsü | 11 |
+| *Ekstra:* Kaş kaldır / çat | Yukarı / aşağı kaydır | 11 |
+| *Ekstra:* Ağzını aç | Oynat / duraklat | 11 |
+| *Ekstra:* Dudak büz | Sesi kapat / aç | 11 |
 
 ## Kimlik, dünya, vücut
 
 | Özellik | İşlev | Ders |
 |---|---|---|
-| Yüz tanıma | `--kaydet İSİM` ile kaydol, sonra tanır | 12 |
+| Yüz tanıma | `python baslat.py 12`: kaydol (adım adım açılar), yeniden kaydol, tanı, listele, sil | 12 |
 | Canlılık testi | 3 rastgele hareket: kırp, gülümse, başı çevir, ağzı aç | 13 |
 | Kapı bekçisi | Sahibi tanı → canlılık → aç; 30 sn yoksa kilitle | 14 |
 | İşaret parmağıyla göster | Gösterilen nesnenin adı yazılır | 15 |

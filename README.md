@@ -75,15 +75,15 @@ Seçilen ayar terminale yazılır.  `[Kamera] 1280x720, MSMF, ~30 FPS`
 | 3 | [Jest Merkezi ve Olay Yolu](dersler/ders_03_jest_merkezi/) | 7 statik jest + kaydırma, yayınla-abone ol mimarisi |
 | 4 | [Medya ve Ses Kontrolü](dersler/ders_04_medya_kontrol/) | Parmak mesafesiyle ses seviyesi, jestle medya |
 | 5 | [Güvenilir Çimdik ve Fare V3](dersler/ders_05_guvenilir_cimdik/) | 7 katmanlı çimdik, kişiye özel eşik örnekleyici |
-| 6 | [Hologram Masası I](dersler/ders_06_hologram_masasi/) | Tarayıcıda 3D sahne: tut, fırlat, iki elle büyüt; karar Python'da, çizim three.js'te |
-| 7 | [Hologram Masası II](dersler/ders_07_hologram_masasi_2/) | Pençeyle uzaktan çekme, alkış, Pepper's ghost piramit modu |
+| 6 | [Hologram Masası I](dersler/ders_06_hologram_masasi/) *(ekstra)* | Tarayıcıda 3D sahne: tut, fırlat, iki elle büyüt; karar Python'da, çizim three.js'te |
+| 7 | [Hologram Masası II](dersler/ders_07_hologram_masasi_2/) *(ekstra)* | Pençeyle uzaktan çekme, alkış, Pepper's ghost piramit modu |
 | 8 | [Kontrol Merkezi ve Hava Çizimi](dersler/ders_08_kontrol_merkezi/) | Fare / medya / pencere modları, iki parmakla kaydırma, parmakla çizim |
 | | **Faz 2: Yüz** | |
-| 9 | [Yüz İskeleti ve Baş Pozu](dersler/ders_09_bas_pozu/) | 478 nokta, matris ve solvePnP karşılaştırması, başla imleç |
-| 10 | [Göz Kırpma ve Yorgunluk](dersler/ders_10_goz_kirpma/) | Uyarlanır EAR eşiği, göz kırparak tıklama, PERCLOS |
-| 11 | [Mimik Komutları](dersler/ders_11_mimik/) | 52 ifade skoru, kendini düzelten nötr taban, el kapısı |
+| 9 | [Yüz İskeleti ve Baş Pozu](dersler/ders_09_bas_pozu/) *(ekstra)* | 478 nokta, matris ve solvePnP karşılaştırması, başla imleç |
+| 10 | [Göz Kırpma ve Yorgunluk](dersler/ders_10_goz_kirpma/) | Uyarlanır EAR eşiği, PERCLOS ile yorgunluk. Göz kırparak tıklama ekstra (`10f`) |
+| 11 | [Mimik Komutları](dersler/ders_11_mimik/) *(ekstra)* | 52 ifade skoru, kendini düzelten nötr taban, el kapısı |
 | | **Faz 3: Kimlik (Kapı Bekçisi)** | |
-| 12 | [Yüz Tanıma](dersler/ders_12_yuz_tanima/) | YuNet + SFace, çeşitlilik zorunlu kayıt, yerel kimlik veritabanı |
+| 12 | [Yüz Tanıma](dersler/ders_12_yuz_tanima/) | YuNet + SFace, adım adım yönlendirilen kayıt, yerel kimlik veritabanı |
 | 13 | [Canlılık Testi](dersler/ders_13_canlilik/) | Fotoğrafa karşı rastgele hareket sorgusu |
 | 14 | [Kapı Bekçisi](dersler/ders_14_kapi_bekcisi/) | Tanıma + canlılık, uzaklaşınca Windows kilidi, yabancı kaydı |
 | | **Faz 4: Dünya** | |
@@ -91,6 +91,8 @@ Seçilen ayar terminale yazılır.  `[Kamera] 1280x720, MSMF, ~30 FPS`
 | 16 | [Vücut Pozu](dersler/ders_16_vucut_pozu/) | Egzersiz sayacı, önden bakan kamerayla duruş bekçisi |
 | | **Faz 5: Entegrasyon** | |
 | 17 | [7/24 Servis](dersler/ders_17_servis/) | Paralel ön / arka plan, enerji tasarrufu, HTTP + SSE, kontrol paneli |
+
+*(ekstra)* işaretli dersler öğreticidir ama gündelik kullanım için değildir. Kodları ve README'leri yerinde durur, menüde ayrı grupta listelenir ve 7/24 serviste varsayılan olarak kapalıdır.
 
 Ayrıntılı müfredat: [YOL_HARITASI.md](YOL_HARITASI.md) · Hangi hareket ne yapar: [OZELLIKLER.md](OZELLIKLER.md)
 
@@ -157,7 +159,7 @@ Her ders aynı seçenekleri destekler.
 ```bash
 pytest -m "not uctan_uca"   # Birim testleri: kamera ve model gerekmez, CI'da çalışır
 pytest -m uctan_uca         # Her dersi gerçek modellerle videolar / fotoğraflar üzerinde çalıştırır
-pytest                      # Hepsi (173 test)
+pytest                      # Hepsi (180 test)
 ```
 
 Birim testleri sentetik el, yüz ve vücut verisiyle çalışır: çimdik katmanları, hologram fiziği,

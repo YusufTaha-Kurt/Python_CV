@@ -1,5 +1,11 @@
 # Ders 6: Hologram Masası I
 
+> **Ekstra ders.** Öğretici bir mimari denemesidir, günlük kullanım için değildir.
+> Bilinen sınırlar şunlardır. Görüntü tarayıcıya MJPEG, sahne durumu ayrı bir SSE akışıyla
+> gider ve ikisi arasında gecikme farkı oluşur. 3D model perspektifle çizildiği için tutma
+> noktası ile modelin göründüğü yer tam örtüşmeyebilir. Akış hızı da masaüstü OpenCV
+> derslerinin altında kalır.
+
 **Amaç:** Kamera görüntüsünün üstünde süzülen cam kartları ve 3D modelleri çıplak elle
 yönetmek: tutmak, taşımak, fırlatmak, iki elle büyütmek, döndürmek, parçalarına ayırmak.
 Kulaklık, eldiven ya da kumanda yok; sadece web kamerası.

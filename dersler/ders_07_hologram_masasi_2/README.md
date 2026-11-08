@@ -1,5 +1,8 @@
 # Ders 7: Hologram Masası II
 
+> **Ekstra ders.** Ders 6'nın masası üzerine kuruludur ve aynı sınırları taşır
+> ([Ders 6](../ders_06_hologram_masasi/)). Günlük kullanım için değildir.
+
 **Amaç:** Ders 6'nın masasına uzaktan etkileşim ve iki elli jestler eklemek, ileride
 yapılacak fiziksel hologram için piramit görünümü hazırlamak.
 
