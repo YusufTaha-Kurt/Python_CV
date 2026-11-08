@@ -37,14 +37,21 @@ class GozKirpmaAlgilayici:
         "dogal"         İki göz kısa süre kapandı (< 0.35 sn): doğal göz kırpma
         "bilincli"      İki göz bilerek kapatıldı (0.35 - 1.5 sn): tıklama için
         "uzun"          İki göz 1.5 sn'den uzun kapalı kaldı ve açıldı
-        "mikro_uyku"    İki göz 1.5 sn'dir kapalı (henüz açılmadı, bir kez)
+        "mikro_uyku"    İki göz `mikro_uyku_siniri` (varsayılan 3 dk) boyunca kapalı (bir kez)
         "goz_kirp_sol" / "goz_kirp_sag"   Tek göz kırpma (ekranda görünen taraf)
+
+    Taban kilitlenmesi: Taban yalnız açık karelerden öğrenilir. Bir göz için taban fazla yüksek
+    öğrenilirse (gözlük yansıması, baş açısı, kısık göz) o göz bir daha hiç "açık" sayılmaz ve
+    taban da kendini düzeltemez. Bu yüzden bir göz `yeniden_ogrenme` saniyedir kapalı görünüyorsa
+    ve bu gerçek bir kapanma olamıyorsa (diğer göz açık ya da göz tam kapalı olamayacak kadar
+    açık) tabanı son karelerden yeniden öğrenilir.
     """
 
     ISINMA_KARESI = 15  # Bu kadar kare toplanmadan "açık göz tabanı" oluşmaz, olay üretilmez
 
     def __init__(self, kapanma_orani=0.62, acilma_orani=0.78, dogal_sinir=0.35, uzun_sinir=1.5,
-                 tek_goz_min=0.2, tek_goz_max=1.0):
+                 tek_goz_min=0.2, tek_goz_max=1.0, mikro_uyku_siniri=180.0, yeniden_ogrenme=3.0,
+                 mutlak_kapali_ear=0.14):
         # Eşikler tabanın ORANIDIR: EAR tabanın %62'sinin altına inince göz kapandı sayılır,
         # %78'inin üstüne çıkınca açıldı sayılır. Aradaki boşluk (histerezis) titremeyi önler.
         self.kapanma_orani = kapanma_orani
@@ -53,6 +60,11 @@ class GozKirpmaAlgilayici:
         self.uzun_sinir = uzun_sinir
         self.tek_goz_min = tek_goz_min
         self.tek_goz_max = tek_goz_max
+        # Kısık gözlü kullanıcıda kısa eşik sürekli yanlış alarm verir: varsayılan 3 dakika
+        self.mikro_uyku_siniri = mikro_uyku_siniri
+        self.yeniden_ogrenme = yeniden_ogrenme
+        # Gerçekten kapalı bir gözün EAR'ı bunun altındadır (kırpma anları 0.08-0.15 ölçüldü)
+        self.mutlak_kapali_ear = mutlak_kapali_ear
         self.sifirla()
 
     def sifirla(self):
@@ -61,6 +73,8 @@ class GozKirpmaAlgilayici:
         self.taban = [None, None]
         self.kapali = [False, False]
         self._acik_gecmisi = [deque(maxlen=300), deque(maxlen=300)]  # ~10 sn açık göz örneği
+        self._son_ear = [deque(), deque()]  # (zaman, ear): son `yeniden_ogrenme` saniye, her kare
+        self._kapanma_zamani = [None, None]
         self._iki_kapali_baslangic = None
         self._mikro_uyku_bildirildi = False
         self._tek = None  # (kapanan göz, başlangıç, diğer göz hep açık kaldı mı)
@@ -90,14 +104,22 @@ class GozKirpmaAlgilayici:
         if not self.hazir:
             return []
 
+        for i in (0, 1):
+            self._son_ear[i].append((zaman, self.ear[i]))
+            while zaman - self._son_ear[i][0][0] > self.yeniden_ogrenme:
+                self._son_ear[i].popleft()
+        self._kilitlenmeyi_coz(zaman)
+
         # 1) Her gözün kapalı / açık durumunu güncelle (histerezisli)
         onceki = list(self.kapali)
         for i in (0, 1):
             kapanma, acilma = self.esikler(i)
             if not self.kapali[i] and self.ear[i] < kapanma:
                 self.kapali[i] = True
+                self._kapanma_zamani[i] = zaman
             elif self.kapali[i] and self.ear[i] > acilma:
                 self.kapali[i] = False
+                self._kapanma_zamani[i] = None
             if not self.kapali[i] and self.ear[i] > acilma:
                 # Taban sadece net açık karelerden öğrenilir; %70'lik dilim yarım kırpmalara dayanıklı
                 self._acik_gecmisi[i].append(self.ear[i])
@@ -110,7 +132,7 @@ class GozKirpmaAlgilayici:
             if self._iki_kapali_baslangic is None:
                 self._iki_kapali_baslangic = zaman
                 self._tek = None  # İkisi de kapandıysa bu bir tek göz kırpma değil
-            elif zaman - self._iki_kapali_baslangic >= self.uzun_sinir and not self._mikro_uyku_bildirildi:
+            elif zaman - self._iki_kapali_baslangic >= self.mikro_uyku_siniri and not self._mikro_uyku_bildirildi:
                 self._mikro_uyku_bildirildi = True
                 olaylar.append("mikro_uyku")
         elif self._iki_kapali_baslangic is not None:
@@ -135,6 +157,28 @@ class GozKirpmaAlgilayici:
                         olaylar.append("goz_kirp_sol" if i == 0 else "goz_kirp_sag")
                     self._tek = None
         return olaylar
+
+    def _kilitlenmeyi_coz(self, zaman):
+        """Uzun süredir "kapalı" görünen ama gerçekte kapalı olamayacak gözün tabanını yeniden öğrenir."""
+        for i in (0, 1):
+            baslangic = self._kapanma_zamani[i]
+            if not self.kapali[i] or baslangic is None or zaman - baslangic < self.yeniden_ogrenme:
+                continue
+            son = [e for _, e in self._son_ear[i]]
+            # Tek göz saniyelerce kapalı tutulmaz; iki göz birden kapalıysa ancak EAR gerçekten
+            # kapalı göz seviyesinin üstündeyse (kısık göz) kilitlenme sayılır. Böylece gerçek
+            # uzun kapanma (mikro uyku) tabanı bozmaz.
+            if not self.kapali[1 - i] or float(np.median(son)) > self.mutlak_kapali_ear:
+                yeni_taban = float(np.percentile(son, 70))
+                self.taban[i] = yeni_taban
+                self._acik_gecmisi[i].clear()
+                self._acik_gecmisi[i].extend(son)
+                self.kapali[i] = self.ear[i] < yeni_taban * self.kapanma_orani
+                self._kapanma_zamani[i] = zaman if self.kapali[i] else None
+                if self._iki_kapali_baslangic is not None and not self.kapali[i]:
+                    # Kilitlenmeden doğan sahte "iki göz kapalı" süresi olay üretmesin
+                    self._iki_kapali_baslangic = None
+                    self._mikro_uyku_bildirildi = False
 
 
 class YorgunlukIzleyici:

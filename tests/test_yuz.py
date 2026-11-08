@@ -115,8 +115,42 @@ ACIK, KAPALI = 0.30, 0.08
     [(3, ["dogal"]), (20, ["bilincli"]), (60, ["mikro_uyku", "uzun"])],
 )
 def test_iki_goz_kirpma_turleri(kapali_kare, beklenen):
-    g = GozKirpmaAlgilayici()
+    g = GozKirpmaAlgilayici(mikro_uyku_siniri=1.5)
     assert oynat(g, [(ACIK, ACIK, 30), (KAPALI, KAPALI, kapali_kare), (ACIK, ACIK, 10)]) == beklenen
+
+
+def test_mikro_uyku_varsayilan_uc_dakika():
+    """Kısık gözlü kullanıcıda 1.5 sn yanlış alarm veriyordu: varsayılan 3 dakika."""
+    g = GozKirpmaAlgilayici()
+    assert oynat(g, [(ACIK, ACIK, 30), (KAPALI, KAPALI, 30 * 60)]) == []  # 1 dk kapalı: alarm yok
+    assert oynat(g, [(KAPALI, KAPALI, 30 * 121)], t0=61.0) == ["mikro_uyku"]  # 3 dk dolunca
+
+
+def test_tek_gozde_taban_kilitlenmesi_cozulur():
+    """Sağ göz için taban fazla yüksek öğrenilmiş: göz açıkken bile kırmızı kalıyordu."""
+    g = GozKirpmaAlgilayici()
+    oynat(g, [(0.30, 0.40, 30)])  # Isınmada sağ göz yanlışlıkla çok açık ölçüldü
+    oynat(g, [(0.30, 0.22, 30)])  # Gerçek açıklık 0.22 < 0.40 * 0.62: kapalı sanılıyor
+    assert g.kapali[1]
+    olaylar = oynat(g, [(0.30, 0.22, 90)], t0=2.0)  # 3 sn sonra taban yeniden öğrenilir
+    assert not g.kapali[1] and g.taban[1] == pytest.approx(0.22, abs=0.01)
+    assert "goz_kirp_sag" not in olaylar
+    # Taban düzeldikten sonra sağ göz kırpması yine algılanır
+    assert oynat(g, [(0.30, 0.06, 12), (0.30, 0.22, 10)], t0=5.0) == ["goz_kirp_sag"]
+
+
+def test_kisik_gozler_kapali_sayilmaz():
+    """İki göz birden kısılınca (EAR 0.18, kapalı göz seviyesinin üstü) taban kısık göze uyar."""
+    g = GozKirpmaAlgilayici()
+    olaylar = oynat(g, [(ACIK, ACIK, 30), (0.18, 0.18, 150)])
+    assert not g.ikisi_kapali and olaylar == []
+
+
+def test_gercek_uzun_kapanma_tabani_bozmaz():
+    """Gözler gerçekten kapalıyken (EAR 0.08) taban yeniden öğrenilmez, gözler kapalı kalır."""
+    g = GozKirpmaAlgilayici()
+    oynat(g, [(ACIK, ACIK, 30), (KAPALI, KAPALI, 300)])
+    assert g.ikisi_kapali and g.taban[0] == pytest.approx(ACIK, abs=0.01)
 
 
 def test_tek_goz_kirpma_ve_dogal_kirpma_ayrimi():

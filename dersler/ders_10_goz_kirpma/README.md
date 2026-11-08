@@ -1,5 +1,7 @@
 # Ders 10: Göz Kırpma ve Yorgunluk
 
+> Yorgunluk izleme temel derstir. Göz kırparak tıklama (`--fare`) **ekstra**dır.
+
 **Amaç:** Gözlerin açık mı kapalı mı olduğunu güvenilir şekilde ölçmek; bununla hem
 göz kırparak tıklamak hem de uzun süre bilgisayar başında kalınca yorgunluğu fark etmek.
 
@@ -29,7 +31,7 @@ diye adlandırılır; aynalı görüntüde ekranın solundaki göz kullanıcın�
 | `dogal` | İki göz < 0.35 sn kapalı | Kırpma hızı (dakikada) |
 | `bilincli` | İki göz 0.35 - 1.5 sn kapalı | `--fare` ile **sol tık** |
 | `goz_kirp_sol` / `goz_kirp_sag` | Tek göz 0.2 - 1 sn kapalı, diğeri hep açık | `--fare` ile sağdaki gözle **sağ tık** |
-| `mikro_uyku` | İki göz 1.5 sn'dir kapalı | Kırmızı uyarı (+ `--alarm` ile ses) |
+| `mikro_uyku` | İki göz 3 dk'dır kapalı (`--mikro-uyku`) | Kırmızı uyarı (+ `--alarm` ile ses) |
 
 Doğal kırpmada bir göz bir kare önce kapanabilir; bu tek göz kırpma sayılmaz (diğer göz
 kapanınca tek göz adayı iptal edilir).
@@ -43,12 +45,32 @@ kapanınca tek göz adayı iptal edilir).
 ## Çalıştırma
 
 ```bash
-python dersler/ders_10_goz_kirpma/goz_kirpma.py                 # izleme ve uyarı
-python dersler/ders_10_goz_kirpma/goz_kirpma.py --fare --alarm  # eller serbest fare + sesli uyarı
+python baslat.py 10                                                    # yorgunluk izleme
+python dersler/ders_10_goz_kirpma/goz_kirpma.py --alarm --mikro-uyku 5 # sesli uyarı, 5 dk eşiği
+python baslat.py 10f                                                   # ekstra: göz kırparak tıklama
 ```
 
-`--fare`: Ders 9'un başla imleciyle birleşir. Gözler kapanırken baş biraz oynadığı için göz
-kapalıyken imleç dondurulur; böylece tık tam bakılan yere düşer.
+`--mikro-uyku DAKIKA`: Gözler bu kadar süre kapalı kalınca uyarı verilir (varsayılan 3 dakika).
+İlk sürümde 1.5 saniyeydi. Kısık gözlü kullanıcıda gözler sık sık "kapalı" sayıldığı için
+sürekli yanlış alarm veriyordu.
+
+**Ekstra: göz kırparak tıklama (`--fare`).** Ders 9'un başla imleciyle birleşir. Gözler
+kapanırken baş biraz oynadığı için göz kapalıyken imleç dondurulur. Gözlükte cam yansıması ve
+kısık gözde EAR farkı küçüldüğü için güvenilir değildir. Bu yüzden menüde ekstra dersler
+arasındadır, 7/24 serviste de yer almaz.
+
+## Taban kilitlenmesi
+
+Taban yalnız göz açık sayıldığı karelerden öğrenilir. Bir gözün tabanı fazla yüksek öğrenilirse
+(ısınmada gözlük yansıması, baş açısı) o göz bir daha hiç açık sayılmıyordu. Göz elle açık
+tutulsa bile kırmızı kalıyordu. Artık bir göz 3 saniyedir kapalı görünüyorsa ve bu gerçek bir
+kapanma olamıyorsa tabanı son karelerden yeniden öğrenilir.
+
+| Durum | Karar |
+|-------|-------|
+| Tek göz 3 sn kapalı, diğeri açık | Tek göz saniyelerce kapalı tutulmaz. Taban yeniden öğrenilir. |
+| İki göz 3 sn kapalı, EAR 0.14'ün üstünde | Kısık göz. İki gözün tabanı yeniden öğrenilir. |
+| İki göz kapalı, EAR 0.14'ün altında | Gerçek kapanma. Taban korunur, mikro uyku sayacı işler. |
 
 ## CV maddesi
 

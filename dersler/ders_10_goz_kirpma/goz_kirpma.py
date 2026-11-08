@@ -7,16 +7,18 @@ Olaylar:
     Doğal kırpma (< 0.35 sn)     Sayılır (dakikadaki kırpma hızı)
     Bilinçli kırpma (0.35-1.5)   --fare açıksa SOL TIK
     Tek göz kırpma               --fare açıksa ekranın sağındaki gözle SAĞ TIK
-    Gözler 1.5 sn kapalı          MİKRO UYKU uyarısı
+    Gözler 3 dk kapalı            MİKRO UYKU uyarısı (--mikro-uyku ile değişir)
     PERCLOS > %15 (son 1 dk)     YORGUNLUK uyarısı
     Uzun esneme                   Sayılır
 
---fare: Ders 9'daki başla imleçle birleşir. Başını çevirerek imleci yönet, gözlerini
-kısa süre bilerek kapatarak tıkla: tamamen eller serbest bir fare.
+--fare (ekstra): Ders 9'daki başla imleçle birleşir. Başını çevirerek imleci yönet, gözlerini
+kısa süre bilerek kapatarak tıkla. Gözlükle ve kısık gözle güvenilir değildir, bu yüzden
+menüde ekstra dersler arasındadır (python baslat.py 10f).
 
 Çalıştırma (depo kökünden):
-    python dersler/ders_10_goz_kirpma/goz_kirpma.py                  # sadece izleme ve uyarı
-    python dersler/ders_10_goz_kirpma/goz_kirpma.py --fare --alarm
+    python baslat.py 10                                              # yorgunluk izleme
+    python dersler/ders_10_goz_kirpma/goz_kirpma.py --alarm --mikro-uyku 5
+    python dersler/ders_10_goz_kirpma/goz_kirpma.py --fare           # ekstra: göz kırparak tıklama
 """
 
 import sys
@@ -69,9 +71,11 @@ def main():
     ayrac = arguman_ayraci("Göz Kırpma ve Yorgunluk")
     ayrac.add_argument("--fare", action="store_true", help="Başla imleç + göz kırparak tıklama")
     ayrac.add_argument("--alarm", action="store_true", help="Yorgunlukta sesli uyarı")
+    ayrac.add_argument("--mikro-uyku", type=float, default=3.0, metavar="DAKIKA",
+                       help="Gözler bu kadar dakika kapalı kalınca uyarı ver (varsayılan 3)")
     args = ayrac.parse_args()
 
-    goz = GozKirpmaAlgilayici()
+    goz = GozKirpmaAlgilayici(mikro_uyku_siniri=args.mikro_uyku * 60)
     yorgunluk = YorgunlukIzleyici()
     bas_faresi = surucu = fare = None
     if args.fare:
