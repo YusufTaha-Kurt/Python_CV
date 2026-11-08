@@ -99,6 +99,20 @@ def test_komutlar():
     servis.komut({"a": "devam"})
     assert not servis.duraklatildi
     assert servis.durum()["kapali_yetenekler"] == ["a"]
+    # Konsolsuz çalışırken paneldeki "Servisi kapat" düğmesi bunu gönderir
+    assert servis.komut({"a": "kapat"}) and servis._durdur.is_set()
+
+
+def test_gundelik_ayarlari():
+    """Gündelik kullanımda yalnız el kontrolü ve yorgunluk açık; diğer dersler ders olarak kalır."""
+    import os
+
+    from goru.servis import KOK
+
+    ayarlar = ayarlari_yukle(os.path.join(KOK, "gundelik_ayarlari.json"))
+    acik = sorted(ad for ad, ayar in ayarlar["yetenekler"].items() if ayar.get("acik"))
+    assert acik == ["kontrol", "yorgunluk"]
+    assert ayarlar["yetenekler"]["yorgunluk"]["mikro_uyku_dakika"] == 3
 
 
 def test_kimse_yokken_bekleme_modu():

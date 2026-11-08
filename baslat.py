@@ -5,6 +5,7 @@ Tüm dersleri tek yerden başlat.
     python baslat.py 5               Ders 5'i başlat
     python baslat.py 5 --sadece-izle Ders 5'i fareye dokunmadan başlat (ek argümanlar derse iletilir)
     python baslat.py 12              Yüz tanıma alt menüsü (kaydol, yeniden kaydol, tanı, listele, sil)
+    python baslat.py g               Gündelik kullanım (gundelik.py, bkz. GUNDELIK.md)
 
 Dersler iki gruptadır. Temel dersler günlük kullanıma yöneliktir. Ekstra dersler teknik olarak
 öğreticidir ama herkesin günlük ihtiyacı değildir (baş ve yüz ifadesiyle kontrol, tarayıcıda
@@ -48,7 +49,9 @@ def girdi(soru):
 
 def menu():
     """Dersleri temel ve ekstra diye iki grupta listeler, seçilen numarayı döndürür."""
-    print("\n  PYTHON CV DERSLERI\n\n  TEMEL")
+    print("\n  PYTHON CV\n")
+    print("     g  GUNDELIK KULLANIM      Fare / medya / pencere + yorgunluk, arka planda (GUNDELIK.md)")
+    print("\n  TEMEL DERSLER")
     for numara, ad, _, aciklama, ekstra, _ in DERSLER:
         if not ekstra:
             print(f"  {numara:>4}  {ad:<22} {aciklama}")
@@ -83,6 +86,10 @@ def main():
     secim, ek = (menu(), []) if menuden else (sys.argv[1], sys.argv[2:])
     if secim.lower() in ("q", ""):
         return
+    ortam = dict(os.environ, PYTHONPATH=KOK + os.pathsep + os.environ.get("PYTHONPATH", ""))
+    if secim.lower() == "g":
+        print("\n  >>> Gundelik kullanim\n")
+        sys.exit(subprocess.call([sys.executable, os.path.join(KOK, "gundelik.py"), *ek], cwd=KOK, env=ortam))
     ders = next((d for d in DERSLER if d[0] == secim.lower() or d[0] == secim + "a"), None)
     if ders is None:
         print(f"Bilinmeyen ders: {secim}")
@@ -93,7 +100,6 @@ def main():
     elif menuden:
         ek = girdi("  Ek argumanlar (bos birak ya da orn. --sadece-izle): ").split()
     print(f"\n  >>> Ders {numara}: {ad}\n")
-    ortam = dict(os.environ, PYTHONPATH=KOK + os.pathsep + os.environ.get("PYTHONPATH", ""))
     sys.exit(subprocess.call([sys.executable, os.path.join(KOK, betik), *varsayilan, *ek], cwd=KOK, env=ortam))
 
 

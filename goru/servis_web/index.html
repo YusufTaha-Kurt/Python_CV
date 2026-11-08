@@ -41,7 +41,7 @@
       <div class="satir"><span class="etiket">Kare başına işlem</span><span id="islem">-</span></div>
       <div class="satir"><span class="etiket">Çalışan modeller</span><span id="takipciler">-</span></div>
       <div class="satir"><span class="etiket">Çalışma süresi</span><span id="sure">-</span></div>
-      <div class="satir"><span class="etiket"></span><span><button id="duraklat">Duraklat</button></span></div>
+      <div class="satir"><span class="etiket"></span><span><button id="duraklat">Duraklat</button> <button id="servisi-kapat" class="kapat">Servisi kapat</button></span></div>
     </div>
     <div class="kart">
       <h2>Yetenekler</h2>
@@ -114,6 +114,12 @@
     yeteneklerCiz();
   };
   $("duraklat").onclick = () => komut({ a: durum && durum.duraklatildi ? "devam" : "duraklat" });
+  $("servisi-kapat").onclick = () => {
+    if (!confirm("Servis kapatılsın mı? Yeniden açmak için başlatıcıyı tekrar çalıştırmak gerekir.")) return;
+    komut({ a: "kapat" });
+    $("servis").textContent = "kapatılıyor...";
+    $("servis").className = "rozet kirmizi";
+  };
 
   new EventSource("/olaylar?gecmis=1").onmessage = (e) => {
     const olay = JSON.parse(e.data);

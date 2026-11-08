@@ -68,6 +68,7 @@ Unuttuğunda buraya bak. Ayrıntı için ilgili dersin README'sine git.
 | Duruş bekçisi | Kambur / eğik oturma uyarısı (ilk 3 sn dik otur) | 16 |
 | İki el yukarı, T pozu | Vücut jestleri (olay olarak yayınlanır) | 16 |
 | 7/24 servis | Hepsi arka planda; panel `http://127.0.0.1:8770/` | 17 |
+| Gündelik kullanım | `Gundelik.bat` ya da `python gundelik.py`: fare / medya / pencere + yorgunluk ([GUNDELIK.md](GUNDELIK.md)) | 17 |
 
 ## Tuşlar ve ortak seçenekler
 

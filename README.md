@@ -40,7 +40,17 @@ python -m pip install -r requirements.txt
 `requirements.txt` OpenCV, MediaPipe ve PyAutoGUI ile birlikte `goru` paketini de kurar.
 Modeller (yaklaşık 70 MB) ilk çalıştırmada `models/` klasörüne kendiliğinden indirilir.
 
-### Çalıştırma
+### Gündelik kullanım
+
+Derslerden günlük hayatta kullanılan kısım tek başlatıcıdadır. Fare, medya ve pencere elle
+yönetilir, yorgunluk izlenir. Ayrıntılar [GUNDELIK.md](GUNDELIK.md) dosyasındadır.
+
+```bash
+Gundelik.bat                      # Windows: çift tıkla, konsolsuz başlar
+python gundelik.py --sadece-izle  # Önce böyle dene
+```
+
+### Dersleri çalıştırma
 
 ```bash
 python baslat.py                  # Bütün dersler menüden
@@ -159,7 +169,7 @@ Her ders aynı seçenekleri destekler.
 ```bash
 pytest -m "not uctan_uca"   # Birim testleri: kamera ve model gerekmez, CI'da çalışır
 pytest -m uctan_uca         # Her dersi gerçek modellerle videolar / fotoğraflar üzerinde çalıştırır
-pytest                      # Hepsi (180 test)
+pytest                      # Hepsi (181 test)
 ```
 
 Birim testleri sentetik el, yüz ve vücut verisiyle çalışır: çimdik katmanları, hologram fiziği,
@@ -190,6 +200,7 @@ dersler/                  Ders 1-17 (her biri kendi README'siyle)
 tests/                    Birim ve uçtan uca testler
 docs/referanslar/         İncelenen açık kaynak projelerin analizleri
 baslat.py                 Ders menüsü
+gundelik.py, Gundelik.bat Gündelik kullanım başlatıcısı (ayarlar: gundelik_ayarlari.json, belge: GUNDELIK.md)
 ```
 
 ## Gizlilik

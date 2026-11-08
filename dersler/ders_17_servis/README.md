@@ -4,6 +4,28 @@
 planda çalışan tek bir servise dönüştürmek ve başka uygulamaların bu servisi kendi özelliği
 gibi kullanabilmesini sağlamak.
 
+> Günlük kullanım için bu dersin hazır hali [GUNDELIK.md](../../GUNDELIK.md) sayfasındadır
+> (`Gundelik.bat` ya da `python gundelik.py`). Aynı servisi kendi ayar dosyasıyla başlatır.
+
+## Nasıl denenir
+
+1. Açık kalan bir dersi kapatınız. Kamerayı aynı anda yalnız bir program kullanabilir.
+2. Servisi fareye dokunmadan, önizleme penceresiyle başlatınız.
+
+   ```bash
+   python baslat.py 17 --onizleme --sadece-izle
+   ```
+
+3. Tarayıcıda **http://127.0.0.1:8770/** adresini açınız. Kontrol panelinde servisin durumu,
+   açık yetenekler ve canlı olaylar görünür.
+4. Sol elinizle 1, 2 ya da 3 parmak gösterip 0.6 saniye tutunuz. Panelde `mod.degisti` olayı
+   görünür. Sağ elinizle hareket yapınız. `jest.degisti` ve eylem olayları akar. `--sadece-izle`
+   açıkken fare ve klavyeye dokunulmaz, yalnız olay yazılır.
+5. Paneldeki **Aç** ve **Kapat** düğmeleriyle yetenekleri çalışırken açıp kapatınız.
+6. Kapatmak için önizleme penceresinde **q**, panelde **Servisi kapat** ya da terminalde Ctrl+C kullanılır.
+
+Her şey yolundaysa `--sadece-izle` olmadan başlatınca fare ve kısayollar gerçekten çalışır.
+
 ## Yetenekler
 
 | Yetenek | Ders | Model | Çalışma sıklığı | Varsayılan |

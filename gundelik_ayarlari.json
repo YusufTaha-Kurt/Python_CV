@@ -1,0 +1,15 @@
+{
+  "kaynak": 0,
+  "cozunurluk": [960, 540],
+  "sadece_izle": false,
+  "http": {"acik": true, "port": 8770},
+  "tasarruf": {"bekleme_suresi": 15.0, "bekleme_fps": 2.0},
+  "yetenekler": {
+    "kontrol": {"acik": true, "el": "sag"},
+    "yorgunluk": {"acik": true, "alarm": false, "perclos_esigi": 0.15, "mikro_uyku_dakika": 3},
+    "durus": {"acik": false},
+    "mimik": {"acik": false, "eylemler": false},
+    "kapi": {"acik": false},
+    "nesne": {"acik": false}
+  }
+}

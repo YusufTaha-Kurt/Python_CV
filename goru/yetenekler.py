@@ -135,7 +135,7 @@ class YorgunlukYetenegi(Yetenek):
         super().__init__(yol, ayar, sadece_izle)
         from .goz import GozKirpmaAlgilayici, YorgunlukIzleyici
 
-        self.goz = GozKirpmaAlgilayici()
+        self.goz = GozKirpmaAlgilayici(mikro_uyku_siniri=ayar.get("mikro_uyku_dakika", 3.0) * 60)
         self.izleyici = YorgunlukIzleyici(perclos_esigi=ayar.get("perclos_esigi", 0.15))
 
     def isle(self, b):

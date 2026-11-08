@@ -13,7 +13,7 @@ Başka bir uygulamaya bu modülü eklemenin iki yolu:
   Ayrı süreç (herhangi bir dil): Yerel HTTP arayüzü
       GET  http://127.0.0.1:8770/olaylar     Tüm olaylar, canlı (Server-Sent Events)
       GET  http://127.0.0.1:8770/durum.json  Anlık durum
-      POST http://127.0.0.1:8770/komut       {"a": "duraklat" | "devam" | "yetenek_ac" | "yetenek_kapat", "ad": ...}
+      POST http://127.0.0.1:8770/komut       {"a": "duraklat" | "devam" | "yetenek_ac" | "yetenek_kapat" | "kapat", "ad": ...}
 
 İki iş parçacığı:
   Ön plan    Akıcılık isteyen yetenekler (el ile fare / medya / pencere) her karede çalışır.
@@ -39,7 +39,7 @@ from .olaylar import JsonlKaydedici, OlayYolu
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEB_KLASORU = os.path.join(os.path.dirname(os.path.abspath(__file__)), "servis_web")
 MAX_HATA = 5
-IZINLI_KOMUTLAR = {"duraklat", "devam", "yetenek_ac", "yetenek_kapat"}
+IZINLI_KOMUTLAR = {"duraklat", "devam", "yetenek_ac", "yetenek_kapat", "kapat"}
 
 VARSAYILAN_AYARLAR = {
     "kaynak": 0,
@@ -224,12 +224,19 @@ class Servis:
         return True
 
     def komut(self, komut):
-        """Dış komut: {"a": "duraklat" | "devam" | "yetenek_ac" | "yetenek_kapat", "ad": ...}"""
+        """Dış komut: {"a": "duraklat" | "devam" | "yetenek_ac" | "yetenek_kapat" | "kapat", "ad": ...}
+
+        "kapat" servisi tamamen durdurur. Konsolsuz (pythonw) çalışırken paneldeki Kapat düğmesi bunu gönderir.
+        """
         a = komut.get("a")
         if a == "yetenek_ac":
             return self._yetenek_ac(komut.get("ad"))
         if a == "yetenek_kapat":
             return self._yetenek_kapat(komut.get("ad"))
+        if a == "kapat":
+            self.yol.yayinla("servis.komut", a=a)
+            self._durdur.set()
+            return True
         if a == "duraklat":
             self.duraklatildi = True
             for ad, yetenek in list(self.yetenekler.items()):
@@ -456,6 +463,13 @@ class Servis:
         self._thread = threading.Thread(target=self.calistir, daemon=True, name="goru-servis")
         self._thread.start()
         return self
+
+    def bekle(self, zaman_asimi=None):
+        """`baslat()` ile açılan servis bitene kadar bekler. Bittiyse True döner."""
+        if self._thread is None:
+            return True
+        self._thread.join(zaman_asimi)
+        return not self._thread.is_alive()
 
     def durdur(self, bekle=5.0):
         """Servisi durdurur ve en çok `bekle` saniye bitmesini bekler."""
