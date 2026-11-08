@@ -91,6 +91,7 @@ def calistir(betik, *argumanlar, zaman_asimi=180):
 @pytest.mark.parametrize(
     "betik",
     [
+        "dersler/ders_01_fare_v1/fare_v1.py",
         "dersler/ders_02_fare_v2/fare_v2.py",
         "dersler/ders_03_jest_merkezi/jest_merkezi.py",
         "dersler/ders_04_medya_kontrol/medya_kontrol.py",

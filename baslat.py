@@ -14,7 +14,7 @@ KOK = os.path.dirname(os.path.abspath(__file__))
 
 # (numara, ad, betik, açıklama)
 DERSLER = [
-    ("1", "El Kontrollu Fare V1", "faz-1-mouse-kontrol/hand_tracking.py", "Ilk surum (arsiv)"),
+    ("1", "El Kontrollu Fare V1", "dersler/ders_01_fare_v1/fare_v1.py", "Ilk surum: cimdikle tik, yumrukla uyku"),
     ("2", "Fare V2", "dersler/ders_02_fare_v2/fare_v2.py", "1 euro filtresi, 144 Hz imlec"),
     ("3", "Jest Merkezi", "dersler/ders_03_jest_merkezi/jest_merkezi.py", "7 jest + kaydirma, olay yolu"),
     ("4", "Medya ve Ses", "dersler/ders_04_medya_kontrol/medya_kontrol.py", "L isareti ses, jestle medya"),
