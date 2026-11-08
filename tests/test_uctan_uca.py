@@ -24,7 +24,7 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VERI = os.path.join(KOK, "tests", ".veri")
 
 ORNEKLER = {
-    "zafer.jpg": "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/victory.jpg",
+    "kardeslik.jpg": "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/victory.jpg",
     "isaret.jpg": "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/pointing_up.jpg",
     "basparmak.jpg": "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/thumbs_up.jpg",
     "yuz.png": "https://storage.googleapis.com/mediapipe-assets/business-person.png",
@@ -58,11 +58,11 @@ def _yerlestir(tuval, gorsel, merkez_x, yukseklik=420):
 
 @pytest.fixture(scope="session")
 def el_videosu():
-    """Zafer, işaret ve başparmak fotoğraflarından, eli yatayda kaydıran 3 sn'lik video."""
+    """Kardeşlik, işaret ve başparmak fotoğraflarından, eli yatayda kaydıran 3 sn'lik video."""
     yol = os.path.join(VERI, "el_hareket.mp4")
     if os.path.exists(yol):
         return yol
-    gorseller = [cv2.imread(_ornek(ad)) for ad in ("zafer.jpg", "isaret.jpg", "basparmak.jpg")]
+    gorseller = [cv2.imread(_ornek(ad)) for ad in ("kardeslik.jpg", "isaret.jpg", "basparmak.jpg")]
     yazici = cv2.VideoWriter(yol, cv2.VideoWriter_fourcc(*"mp4v"), 30, (1280, 720))
     for i in range(90):
         tuval = np.full((720, 1280, 3), 40, np.uint8)
@@ -193,7 +193,7 @@ def test_servis_http_arayuzu(tmp_path):
     from goru.servis import Servis, varsayilan_ayarlar
 
     ayarlar = varsayilan_ayarlar()
-    ayarlar.update(kaynak=_ornek("zafer.jpg"), sadece_izle=True, kayit_klasoru=str(tmp_path))
+    ayarlar.update(kaynak=_ornek("kardeslik.jpg"), sadece_izle=True, kayit_klasoru=str(tmp_path))
     ayarlar["http"]["port"] = 0
     servis = Servis(ayarlar).baslat()
     try:

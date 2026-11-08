@@ -120,39 +120,49 @@ class Jest(Enum):
     YUMRUK = "yumruk"
     AVUC = "avuc"
     ISARET = "isaret"
-    ZAFER = "zafer"
+    KARDESLIK = "kardeslik"
     L_ISARETI = "l_isareti"
-    BASPARMAK_YUKARI = "basparmak_yukari"
-    ROCK = "rock"
+    ONAY = "onay"
+    BOZKURT = "bozkurt"
+
+
+# Bozkurt işaretinde başparmak ucu orta ve yüzük parmak uçlarına değer (kurdun ağzı).
+# İkisinin de başparmağa uzaklığı bu orandan (el boyutuna göre) küçük olmalıdır.
+BOZKURT_AGIZ_ESIGI = 0.45
+
+
+def bozkurt_agzi_kapali(noktalar):
+    """Başparmak ucu orta ve yüzük parmak uçlarıyla buluşmuş mu (bozkurt işaretinin ağzı)."""
+    return max(cimdik_orani(noktalar, BAS_UCU, ORTA_UCU), cimdik_orani(noktalar, BAS_UCU, YUZUK_UCU)) < BOZKURT_AGIZ_ESIGI
 
 
 def jest_tani(noktalar):
     """Parmak durumlarından statik jesti çıkarır.
 
     Tablo (A = açık, K = kapalı; sırayla işaret, orta, yüzük, serçe):
-        KKKK             → yumruk (başparmak belirgin yukarıdaysa başparmak yukarı)
+        KKKK             → yumruk (başparmak belirgin yukarıdaysa onay)
         AAAA + başparmak → avuç
         AKKK             → işaret (başparmak da açıksa L işareti)
-        AAKK             → zafer
-        AKKA             → rock
+        AAKK             → kardeşlik
+        AKKA             → bozkurt (başparmak orta ve yüzük uçlarına değmeli: kurdun ağzı)
         diğerleri        → bilinmiyor
     """
     bas, isaret, orta, yuzuk, serce = parmak_durumlari(noktalar)
     dort_parmak = (isaret, orta, yuzuk, serce)
 
     if not any(dort_parmak):
-        # Başparmak yukarı: başparmak açık ve ucu bileğin belirgin şekilde üstünde (y ekseni aşağı doğru artar)
+        # Onay: başparmak açık ve ucu bileğin belirgin şekilde üstünde (y ekseni aşağı doğru artar)
         if bas and noktalar[BAS_UCU, 1] < noktalar[BILEK, 1] - 0.5 * el_boyutu(noktalar):
-            return Jest.BASPARMAK_YUKARI
+            return Jest.ONAY
         return Jest.YUMRUK
     if all(dort_parmak):
         return Jest.AVUC if bas else Jest.BILINMIYOR
     if dort_parmak == (True, False, False, False):
         return Jest.L_ISARETI if bas else Jest.ISARET
     if dort_parmak == (True, True, False, False):
-        return Jest.ZAFER
-    if dort_parmak == (True, False, False, True):
-        return Jest.ROCK
+        return Jest.KARDESLIK
+    if dort_parmak == (True, False, False, True) and bozkurt_agzi_kapali(noktalar):
+        return Jest.BOZKURT
     return Jest.BILINMIYOR
 
 

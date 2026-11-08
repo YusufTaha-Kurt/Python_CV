@@ -155,7 +155,7 @@ Her ders aynı seçenekleri destekler.
 ```bash
 pytest -m "not uctan_uca"   # Birim testleri: kamera ve model gerekmez, CI'da çalışır
 pytest -m uctan_uca         # Her dersi gerçek modellerle videolar / fotoğraflar üzerinde çalıştırır
-pytest                      # Hepsi (170 test)
+pytest                      # Hepsi (172 test)
 ```
 
 Birim testleri sentetik el, yüz ve vücut verisiyle çalışır: çimdik katmanları, hologram fiziği,

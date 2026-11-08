@@ -10,8 +10,8 @@ klavyeye ya da fareye dokunmadan yönetilir.
 | L işareti (başparmak + işaret) | **Ses modu:** iki parmak arası mesafe = ses seviyesi |
 | Avuç aç | Ses modundan çık (seviye olduğu yerde kalır) |
 | Avuçla sağa / sola kaydır | Sonraki / önceki parça |
-| Başparmak yukarı | Oynat / duraklat |
-| Rock (işaret + serçe) | Sesi kapat / aç |
+| Onay (başparmak yukarı) | Oynat / duraklat |
+| Bozkurt işareti | Sesi kapat / aç |
 
 ## Öğrenilenler
 

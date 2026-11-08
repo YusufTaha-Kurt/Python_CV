@@ -1,7 +1,7 @@
 """
 Ders 3 - Jest Merkezi ve Olay Yolu
 
-İki eli aynı anda izler, statik jestleri (yumruk, avuç, zafer, L, rock, başparmak yukarı)
+İki eli aynı anda izler, statik jestleri (yumruk, avuç, kardeşlik, L, bozkurt, onay)
 ve dinamik jestleri (sağa/sola kaydırma) tanır. Tanınan her şeyi OlayYolu'na yayınlar
 (goru.jestler.JestYayincisi).
 

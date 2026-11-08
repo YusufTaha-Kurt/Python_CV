@@ -16,9 +16,12 @@ ACIK, KAPALI = True, False
         ((ACIK, ACIK, ACIK, ACIK, ACIK), Jest.AVUC),
         ((KAPALI, ACIK, KAPALI, KAPALI, KAPALI), Jest.ISARET),
         ((ACIK, ACIK, KAPALI, KAPALI, KAPALI), Jest.L_ISARETI),
-        ((KAPALI, ACIK, ACIK, KAPALI, KAPALI), Jest.ZAFER),
-        ((KAPALI, ACIK, KAPALI, KAPALI, ACIK), Jest.ROCK),
-        ((ACIK, KAPALI, KAPALI, KAPALI, KAPALI), Jest.BASPARMAK_YUKARI),
+        ((KAPALI, ACIK, ACIK, KAPALI, KAPALI), Jest.KARDESLIK),
+        # Kapalı başparmağın ucu, orta ve yüzük parmak uçlarının arasına düşer: kurdun ağzı
+        ((KAPALI, ACIK, KAPALI, KAPALI, ACIK), Jest.BOZKURT),
+        # Aynı parmaklar ama başparmak dışarıda: ağız kapanmadı, jest tanınmaz
+        ((ACIK, ACIK, KAPALI, KAPALI, ACIK), Jest.BILINMIYOR),
+        ((ACIK, KAPALI, KAPALI, KAPALI, KAPALI), Jest.ONAY),
         ((KAPALI, KAPALI, ACIK, KAPALI, KAPALI), Jest.BILINMIYOR),
     ],
 )
@@ -26,6 +29,14 @@ def test_jest_tani(parmaklar, beklenen):
     noktalar = sentetik_el(parmaklar)
     assert j.parmak_durumlari(noktalar) == parmaklar
     assert j.jest_tani(noktalar) == beklenen
+
+
+def test_bozkurt_agzi_acilinca_taninmaz():
+    """Başparmak orta ve yüzük uçlarından uzaklaşınca bozkurt işareti bozulur."""
+    noktalar = sentetik_el((KAPALI, ACIK, KAPALI, KAPALI, ACIK))
+    assert j.jest_tani(noktalar) == Jest.BOZKURT
+    noktalar[j.BAS_UCU, :2] = (10, -60 + 0.6 * 90)  # Ağız el boyunun 0.6'sı kadar açıldı
+    assert j.jest_tani(noktalar) != Jest.BOZKURT
 
 
 @pytest.mark.parametrize("derece", [-60, -30, 30, 60, 90])

@@ -5,8 +5,8 @@ Jest sözlüğü:
     L işareti (başparmak + işaret açık)  -> SES MODU: iki parmak arası mesafe = ses seviyesi
     Avuç aç                              -> ses modundan çık (seviye olduğu yerde kalır)
     Avuçla sağa / sola kaydır            -> sonraki / önceki parça
-    Başparmak yukarı                     -> oynat / duraklat
-    Rock (işaret + serçe)                -> sesi kapat / aç
+    Onay (başparmak yukarı)              -> oynat / duraklat
+    Bozkurt işareti                      -> sesi kapat / aç
 
 Ders 3'ten farkı: Görüntü döngüsü yine sadece olay yayınlar (JestYayincisi). Medya
 işlemleri bu olaylara abone olan ayrı bir sınıftır (goru.medya.MedyaKontrol). Yeni bir

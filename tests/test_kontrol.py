@@ -15,7 +15,7 @@ from sentetik_el import sentetik_cimdik, sentetik_el, sentetik_pence
 DT = 1 / 30
 ACIK = (True,) * 5
 ISARET = (False, True, False, False, False)
-ZAFER = (False, True, True, False, False)
+KARDESLIK = (False, True, True, False, False)
 
 
 def el(noktalar, dx=0.0, dy=0.0, taraf="sag"):
@@ -27,7 +27,7 @@ def el(noktalar, dx=0.0, dy=0.0, taraf="sag"):
 
 def test_duz_parmak_sayisi():
     assert j.duz_parmak_sayisi(sentetik_el(ACIK)) == 4
-    assert j.duz_parmak_sayisi(sentetik_el(ZAFER)) == 2
+    assert j.duz_parmak_sayisi(sentetik_el(KARDESLIK)) == 2
     assert j.duz_parmak_sayisi(sentetik_el((False,) * 5)) == 0
     # Pençede kancalar bileğe uzak kalsa da düz sayılmaz (sadece serçe düz)
     assert j.duz_parmak_sayisi(sentetik_pence()) == 1
@@ -55,19 +55,19 @@ def test_kaydirici_sabit_elde_kaydirmaz_ve_ters_yon():
 def test_pencere_kontrol_jestler_ve_aktiflik():
     yol, klavye, fare = OlayYolu(), SahteKlavye(), SahteFare()
     pencere = PencereKontrol(yol, el="sag", klavye=klavye, fare=fare)
-    yol.yayinla("jest.degisti", el="sag", jest="basparmak_yukari")
+    yol.yayinla("jest.degisti", el="sag", jest="onay")
     yol.yayinla("jest.kaydirma", el="sag", yon="sol")
-    yol.yayinla("jest.degisti", el="sol", jest="rock")  # Diğer el: yok sayılır
+    yol.yayinla("jest.degisti", el="sol", jest="bozkurt")  # Diğer el: yok sayılır
     pencere.aktif = False
-    yol.yayinla("jest.degisti", el="sag", jest="rock")  # Mod kapalı: yok sayılır
+    yol.yayinla("jest.degisti", el="sag", jest="bozkurt")  # Mod kapalı: yok sayılır
     assert klavye.basilanlar == ["win+up", "ctrl+win+right"]
 
 
-def test_pencere_zafer_ile_kaydirir():
+def test_pencere_kardeslik_ile_kaydirir():
     yol, fare = OlayYolu(), SahteFare()
     pencere = PencereKontrol(yol, klavye=SahteKlavye(), fare=fare)
     for i in range(40):
-        pencere.isle(el(sentetik_el(ZAFER), dy=3 * i), j.Jest.ZAFER, i * DT)
+        pencere.isle(el(sentetik_el(KARDESLIK), dy=3 * i), j.Jest.KARDESLIK, i * DT)
     assert fare.eylemler and all(e.startswith("kaydir ") and int(e.split()[1]) > 0 for e in fare.eylemler)
     fare.eylemler.clear()
     for i in range(40):  # Başka jestle hareket kaydırmaz
@@ -83,7 +83,7 @@ def test_mod_secici_parmak_sayisiyla():
     olaylar = []
     yol.abone_ol("mod.degisti", olaylar.append)
     secici = ModSecici(["FARE", "MEDYA", "PENCERE"], yol=yol, sure=0.6)
-    sonuclar = [secici.guncelle(el(sentetik_el(ZAFER), taraf="sol"), i * DT) for i in range(25)]
+    sonuclar = [secici.guncelle(el(sentetik_el(KARDESLIK), taraf="sol"), i * DT) for i in range(25)]
     assert secici.mod == "MEDYA" and sonuclar.count("MEDYA") == 1
     for i in range(40):  # Açık avuç ve yumruk modu değiştirmez
         secici.guncelle(el(sentetik_el(ACIK), taraf="sol"), 1 + i * DT)
@@ -140,8 +140,8 @@ def test_hava_tuvali_cizer_gezinir_temizler():
     assert tuval.durum == "ciziyor" and tuval.tuval.any()
     cizili = int(tuval.tuval.any(axis=2).sum())
 
-    for i in range(20):  # Zaferle gezin: yeni çizgi yok
-        tuval.guncelle(el(sentetik_el(ZAFER), 400 + 10 * i, 600), (20 + i) * DT)
+    for i in range(20):  # Kardeşlik işaretiyle gezin: yeni çizgi yok
+        tuval.guncelle(el(sentetik_el(KARDESLIK), 400 + 10 * i, 600), (20 + i) * DT)
     assert tuval.durum == "geziniyor" and int(tuval.tuval.any(axis=2).sum()) == cizili
 
     olaylar = [tuval.guncelle(el(sentetik_el(ACIK), 600, 500), (40 + i) * DT) for i in range(30)]
@@ -151,6 +151,6 @@ def test_hava_tuvali_cizer_gezinir_temizler():
 def test_hava_tuvali_paletten_renk_secer():
     tuval = HavaTuvali(1280, 720)
     x, y, g, h = tuval.palet[2]
-    uc = sentetik_el(ZAFER)[j.ISARET_UCU, :2]
-    olaylar = [tuval.guncelle(el(sentetik_el(ZAFER), x + g / 2 - uc[0], y + h / 2 - uc[1]), i * DT) for i in range(10)]
+    uc = sentetik_el(KARDESLIK)[j.ISARET_UCU, :2]
+    olaylar = [tuval.guncelle(el(sentetik_el(KARDESLIK), x + g / 2 - uc[0], y + h / 2 - uc[1]), i * DT) for i in range(10)]
     assert "renk" in olaylar and tuval.renk[0] == "kirmizi"

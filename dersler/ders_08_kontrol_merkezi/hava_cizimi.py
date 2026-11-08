@@ -4,7 +4,7 @@ Ders 8 - Hava Çizimi
 OpenCV Ders 3'teki fareyle çizim (paint) uygulamasının elle çalışan hali.
 
     Sadece işaret parmağı düz     Çiz
-    İşaret + orta düz (zafer)     Kalemi kaldır, gezin. Üstteki paletten renk seç (parmağı kutuya götür)
+    İşaret + orta düz (kardeşlik)  Kalemi kaldır, gezin. Üstteki paletten renk seç (parmağı kutuya götür)
     Açık avuç (0.8 sn tut)        Tuvali temizle
 
 Tuşlar:  s kaydet (cizimler/ klasörüne)   + / - kalem kalınlığı   c temizle   q çıkış

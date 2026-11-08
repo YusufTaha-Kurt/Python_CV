@@ -17,14 +17,14 @@ Unuttuğunda buraya bak. Ayrıntı için ilgili dersin README'sine git.
 | L işareti (başparmak + işaret) | Ses modu: iki parmak arası mesafe = ses seviyesi | 4 |
 | Avuç aç | Ses modundan çık | 4 |
 | Avuçla sağa / sola kaydır | Sonraki / önceki parça | 4 |
-| Başparmak yukarı | Oynat / duraklat | 4 |
-| Rock (işaret + serçe) | Sesi kapat / aç | 4 |
+| Onay (başparmak yukarı) | Oynat / duraklat | 4 |
+| Bozkurt işareti (işaret + serçe dik, başparmak orta ve yüzük uçlarına değer) | Sesi kapat / aç | 4 |
 | Sol elle 1 / 2 / 3 parmak (0.6 sn) | Mod seç: Fare / Medya / Pencere | 8 |
-| **Pencere modu:** Zafer + yukarı / aşağı | Sayfayı kaydır | 8 |
+| **Pencere modu:** Kardeşlik + yukarı / aşağı | Sayfayı kaydır | 8 |
 | Avuçla sola / sağa kaydır | Sağdaki / soldaki sanal masaüstü | 8 |
-| Başparmak yukarı / Rock / L | Pencere büyüt / küçült / Alt+Tab | 8 |
+| Onay (başparmak yukarı) / Bozkurt / L | Pencere büyüt / küçült / Alt+Tab | 8 |
 | **Hava çizimi:** sadece işaret parmağı | Çiz | 8 |
-| Zafer (işaret + orta) | Kalemi kaldır, paletten renk seç | 8 |
+| Kardeşlik (işaret + orta) | Kalemi kaldır, paletten renk seç | 8 |
 | Açık avuç (0.8 sn) | Tuvali temizle | 8 |
 
 ## Hologram masası (Ders 6-7)

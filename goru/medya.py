@@ -4,8 +4,8 @@ Jest sözlüğü:
     L işareti (başparmak + işaret açık)  -> SES MODU: iki parmak arası mesafe = ses seviyesi
     Avuç aç                              -> ses modundan çık (seviye olduğu yerde kalır)
     Avuçla sağa / sola kaydır            -> sonraki / önceki parça
-    Başparmak yukarı                     -> oynat / duraklat
-    Rock (işaret + serçe)                -> sesi kapat / aç
+    Onay (başparmak yukarı)              -> oynat / duraklat
+    Bozkurt işareti                      -> sesi kapat / aç
 
 Ayrık eylemler (oynat, parça değiştir) JestYayincisi'nin olaylarına abone olarak çalışır.
 Sürekli kontrol (ses seviyesi) her kare `isle()` ile güncellenir.
@@ -44,16 +44,16 @@ class MedyaKontrol:
         yol.abone_ol("jest.kaydirma", self._kaydirma)
 
     def _jest_degisti(self, olay):
-        """jest.degisti olayı: L → ses modu, başparmak yukarı → oynat/duraklat, rock → sessiz."""
+        """jest.degisti olayı: L → ses modu, onay → oynat/duraklat, bozkurt → sessiz."""
         if not self.aktif or olay.veri.get("el") != self.el:
             return
         jest = olay.veri["jest"]
         if jest == j.Jest.L_ISARETI.value:
             self.ses_modu = True
             self._eylem("ses modu")
-        elif jest == j.Jest.BASPARMAK_YUKARI.value:
+        elif jest == j.Jest.ONAY.value:
             self._eylem("oynat/duraklat", lambda: medya_tusu("playpause"))
-        elif jest == j.Jest.ROCK.value:
+        elif jest == j.Jest.BOZKURT.value:
             self._eylem("sessiz ac/kapa", self.ses.sessiz_degistir)
 
     def _kaydirma(self, olay):

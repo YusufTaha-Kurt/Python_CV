@@ -19,8 +19,8 @@ avuç modu değiştirmez; dinlenen bir el yanlışlıkla mod değiştirmesin diy
 | Mod | Kontrol eli |
 |-----|-------------|
 | **1 FARE** | Ders 5: OK çimdiği tık / çift tık / sürükle, başparmak + orta parmak sağ tık |
-| **2 MEDYA** | Ders 4: L işareti ses seviyesi, başparmak yukarı oynat/duraklat, avuçla parça değiştir, rock sessiz |
-| **3 PENCERE** | Zafer + yukarı / aşağı: sayfayı kaydır · avuçla sola / sağa: sanal masaüstü değiştir · başparmak yukarı: pencereyi büyüt · rock: küçült · L işareti: Alt+Tab |
+| **2 MEDYA** | Ders 4: L işareti ses seviyesi, onay oynat/duraklat, avuçla parça değiştir, bozkurt sessiz |
+| **3 PENCERE** | Kardeşlik + yukarı / aşağı: sayfayı kaydır · avuçla sola / sağa: sanal masaüstü değiştir · onay: pencereyi büyüt · bozkurt: küçült · L işareti: Alt+Tab |
 
 Her modda kontrol eliyle **yumruk (0.5 sn)** uyku modunu açar / kapatır.
 
@@ -41,7 +41,7 @@ modundan çıkarken basılı tuş bırakılır (`ElFaresi.sifirla`).
 
 ### Kaydırma
 
-Zafer pozundayken elin dikey hareketi (el boyuna oranla) fare tekerleği birimlerine çevrilir.
+Kardeşlik işaretindeyken elin dikey hareketi (el boyuna oranla) fare tekerleği birimlerine çevrilir.
 Hareket 1€ filtresinden geçer, küçük titremeler ölü bölgede yutulur ve kaydırma tek tek
 çentik yerine 10'ar birimlik adımlarla gönderilir: modern uygulamalarda pürüzsüz kayar.
 Yön dokunmatik ekran gibidir: elini aşağı indirince içerik de aşağı iner.
@@ -55,7 +55,7 @@ python dersler/ders_08_kontrol_merkezi/hava_cizimi.py
 | Hareket | Sonuç |
 |---------|-------|
 | Sadece işaret parmağı düz | Çiz |
-| İşaret + orta (zafer) | Kalemi kaldır ve gezin; parmağı üstteki palete götürerek renk / silgi seç |
+| İşaret + orta (kardeşlik) | Kalemi kaldır ve gezin; parmağı üstteki palete götürerek renk / silgi seç |
 | Açık avuç (0.8 sn) | Tuvali temizle |
 
 Tuşlar: **s** kaydet (`cizimler/`), **+ / -** kalınlık, **c** temizle.

@@ -1,7 +1,7 @@
 """Ders 8: Hava çizimi. İşaret parmağı kalem, iki parmak gezinme, açık avuç silme.
 
     Sadece işaret parmağı düz     Çiz
-    İşaret + orta düz (zafer)     Kalemi kaldır, gezin. Bu sırada üstteki paletten renk seç
+    İşaret + orta düz (kardeşlik)  Kalemi kaldır, gezin. Bu sırada üstteki paletten renk seç
     Açık avuç (0.8 sn)            Tuvali temizle
 """
 

@@ -12,10 +12,14 @@ olduğunu söyler.
 | `avuc` | hepsi açık |
 | `isaret` | sadece işaret |
 | `l_isareti` | başparmak + işaret |
-| `zafer` | işaret + orta |
-| `rock` | işaret + serçe |
-| `basparmak_yukari` | sadece başparmak, uç bileğin üstünde |
+| `kardeslik` | işaret + orta |
+| `bozkurt` | işaret + serçe dik, başparmak ucu orta ve yüzük parmak uçlarına değer (kurdun ağzı) |
+| `onay` | sadece başparmak, uç bileğin üstünde |
 | `kaydirma` (dinamik) | açık avuçla hızlı yatay hareket |
+
+Bozkurt işaretinde yalnız parmakların açık ya da kapalı olması yetmez. Başparmak ucunun orta
+ve yüzük parmak uçlarına uzaklığı el boyunun 0.45 katından az olmalıdır
+(`BOZKURT_AGIZ_ESIGI`). Başparmak dışarıda kalırsa jest tanınmaz.
 
 ## Nasıl çalışıyor?
 
@@ -38,7 +42,7 @@ olduğunu söyler.
 Her olay `olaylar.jsonl` dosyasına bir satır JSON olarak eklenir:
 
 ```json
-{"ad": "jest.degisti", "veri": {"el": "sag", "jest": "zafer", "parmak_sayisi": 2}, "zaman": 1761245112.4}
+{"ad": "jest.degisti", "veri": {"el": "sag", "jest": "kardeslik", "parmak_sayisi": 2}, "zaman": 1761245112.4}
 ```
 
 **Entegrasyon:** Bu paketi kullanan başka bir uygulama ister `OlayYolu`'na abone olur

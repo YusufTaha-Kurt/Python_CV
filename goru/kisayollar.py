@@ -1,11 +1,11 @@
 """Ders 8: İki parmakla kaydırma, sanal masaüstü ve pencere yönetimi.
 
 PENCERE modu jest sözlüğü (kontrol eli):
-    Zafer (iki parmak) + yukarı / aşağı   Sayfayı kaydır (dokunmatik ekran gibi: içerik elle gelir)
+    Kardeşlik + yukarı / aşağı            Sayfayı kaydır (dokunmatik ekran gibi: içerik elle gelir)
     Avuçla sola kaydır                    Sağdaki sanal masaüstüne geç (Win+Ctrl+Sağ)
     Avuçla sağa kaydır                    Soldaki sanal masaüstüne geç (Win+Ctrl+Sol)
-    Başparmak yukarı                      Pencereyi büyüt (Win+Yukarı)
-    Rock (işaret + serçe)                 Pencereyi küçült (Win+Aşağı)
+    Onay (başparmak yukarı)               Pencereyi büyüt (Win+Yukarı)
+    Bozkurt işareti                       Pencereyi küçült (Win+Aşağı)
     L işareti                             Önceki pencereye geç (Alt+Tab)
 """
 
@@ -13,8 +13,8 @@ from . import jestler as j
 from .filtreler import OneEuroFiltre
 
 ISLER = {
-    "basparmak_yukari": ("pencereyi buyut", ("win", "up")),
-    "rock": ("pencereyi kucult", ("win", "down")),
+    "onay": ("pencereyi buyut", ("win", "up")),
+    "bozkurt": ("pencereyi kucult", ("win", "down")),
     "l_isareti": ("pencere degistir", ("alt", "tab")),
 }
 # El sola kayınca içerik de sola kayar ve sağdaki masaüstü görünür (dokunmatik yüzey gibi)
@@ -67,7 +67,7 @@ class Kaydirici:
         self.sifirla()
 
     def sifirla(self):
-        """Hareket geçmişini unutur (zafer jesti bırakılınca çağrılır)."""
+        """Hareket geçmişini unutur (kardeşlik jesti bırakılınca çağrılır)."""
         self._onceki = None
         self._birikim = 0.0
         self._filtre.sifirla()
@@ -108,7 +108,7 @@ class PencereKontrol:
         yol.abone_ol("jest.kaydirma", self._kaydirma)
 
     def _jest_degisti(self, olay):
-        """Statik jest → ISLER tablosundaki kısayol (başparmak yukarı = büyüt, rock = küçült, L = Alt+Tab)."""
+        """Statik jest → ISLER tablosundaki kısayol (onay = büyüt, bozkurt = küçült, L = Alt+Tab)."""
         if self.aktif and olay.veri.get("el") == self.el and olay.veri["jest"] in ISLER:
             self._eylem(*ISLER[olay.veri["jest"]])
 
@@ -125,7 +125,7 @@ class PencereKontrol:
 
     def isle(self, el, jest, zaman):
         """Her kare: el = kontrol eli (ya da None), jest = elin kararlı jesti (JestYayincisi)."""
-        self.kaydiriyor = self.aktif and el is not None and jest == j.Jest.ZAFER
+        self.kaydiriyor = self.aktif and el is not None and jest == j.Jest.KARDESLIK
         if not self.kaydiriyor:
             self.kaydirici.sifirla()
             return

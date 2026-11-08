@@ -4,9 +4,9 @@ Ders 8 - Kontrol Merkezi
 Önceki derslerin yetenekleri tek uygulamada, modlar halinde:
 
     Mod 1  FARE      Ders 5: OK çimdiği tık / sürükle, başparmak + orta sağ tık
-    Mod 2  MEDYA     Ders 4: L işareti ses, başparmak yukarı oynat, avuçla parça değiştir
-    Mod 3  PENCERE   Zafer + yukarı / aşağı kaydır, avuçla sanal masaüstü değiştir,
-                     başparmak yukarı büyüt, rock küçült, L işareti Alt+Tab
+    Mod 2  MEDYA     Ders 4: L işareti ses, onay oynat, avuçla parça değiştir
+    Mod 3  PENCERE   Kardeşlik + yukarı / aşağı kaydır, avuçla sanal masaüstü değiştir,
+                     onay büyüt, bozkurt küçült, L işareti Alt+Tab
 
 Mod seçimi: Diğer elinle (varsayılan sol) 1, 2 ya da 3 parmak göster ve 0.6 sn tut.
             Ya da pencerede 1 / 2 / 3 tuşları.
