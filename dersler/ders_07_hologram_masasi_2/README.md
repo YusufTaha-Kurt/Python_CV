@@ -43,9 +43,12 @@ süzülüyormuş gibi görünür. Kamera görüntüsü bu modda gizlenir (arka p
 ## Çalıştırma
 
 ```bash
-python dersler/ders_07_hologram_masasi_2/hologram_masasi_2.py
-python dersler/ders_07_hologram_masasi_2/hologram_masasi_2.py --piramit
+python baslat.py 7
+python baslat.py 7 --piramit     # Pepper's ghost piramidi için dört yönlü görüntü
 ```
+
+Açılış Ders 6 ile aynıdır. Hazır olunca masa tarayıcıda açılır, OpenCV penceresi yalnız
+önizlemedir. Adım adım deneme için [Ders 6](../ders_06_hologram_masasi/#çalıştırma) bölümüne bakınız.
 
 Olaylar (`hologram.tutuldu`, `hologram.firlatildi`, `hologram.cekildi`, `hologram.alkis`, ...)
 terminale yazılır ve `OlayYolu` üzerinden başka modüllere iletilebilir.

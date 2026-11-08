@@ -211,7 +211,9 @@ class CanliYayin:
     def _sse_durum(self, istek):
         """/durum: yeni durum gelince gönderir; yavaş istemci ara durumları kaçırır, hep en günceli alır."""
         self._sse_baslik(istek)
-        son_no = -1
+        # 0: ilk gerçek durum gelene kadar bekle. Kamera ve model hazırlanırken boş "{}" göndermek,
+        # istemci onu gerçek bir sahne sanıp alanlarını okumaya kalkınca hataya yol açıyordu.
+        son_no = 0
         try:
             while self._calisiyor:
                 with self._kosul:

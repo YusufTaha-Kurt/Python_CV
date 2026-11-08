@@ -31,10 +31,17 @@ window.addEventListener("resize", boyutla);
 boyutla();
 
 // --- Durum akışı ---
-let durum = { boyut: [1280, 720], nesneler: [], imlecler: [], mesajlar: [], ozellikler: {} };
-let sonDurumZamani = 0;
+const BOS_DURUM = { boyut: [1280, 720], nesneler: [], imlecler: [], mesajlar: [], ozellikler: {} };
+let durum = { ...BOS_DURUM };
+let sonDurumZamani = 0, hicDurumGelmedi = true;
 const kaynak = new EventSource("/durum");
-kaynak.onmessage = (e) => { durum = JSON.parse(e.data); sonDurumZamani = performance.now(); };
+kaynak.onmessage = (e) => {
+  const gelen = JSON.parse(e.data);
+  if (!Array.isArray(gelen.nesneler)) return;  // Eksik durum çizimi bozmasın
+  durum = { ...BOS_DURUM, ...gelen };
+  sonDurumZamani = performance.now();
+  hicDurumGelmedi = false;
+};
 const baglanti = document.getElementById("baglanti");
 
 // Kamera pikseli -> dünya koordinatı: merkez (0,0), y yukarı. 1 dünya birimi = 1 kamera pikseli.
@@ -345,15 +352,18 @@ function ciz() {
 }
 
 function dongu(simdi) {
+  // Bir karede hata çıksa bile döngü sürsün: aksi halde sahne kalıcı olarak donar
+  requestAnimationFrame(dongu);
   const sure = Math.min((simdi - sonCizim) / 1000, 0.1);
   sonCizim = simdi;
   cizimFps = cizimFps * 0.9 + (sure > 0 ? 1 / sure : 0) * 0.1;
   senkronla(sure);
   ciz();
   const canli = simdi - sonDurumZamani < 1500;
-  baglanti.textContent = canli ? "" : "bağlanıyor...";
+  baglanti.textContent = canli ? "" : hicDurumGelmedi
+    ? "kamera ve el modeli hazırlanıyor..."
+    : "Python tarafından durum gelmiyor (kamera başka programda açık olabilir)";
   sayac.textContent = `çizim ${cizimFps.toFixed(0)} FPS · takip ${durum.fps ?? "-"} FPS · ${durum.nesneler.length} nesne`;
-  requestAnimationFrame(dongu);
 }
 requestAnimationFrame(dongu);
 

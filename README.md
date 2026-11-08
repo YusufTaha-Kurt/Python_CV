@@ -62,6 +62,8 @@ Seçilen ayar terminale yazılır.  `[Kamera] 1280x720, MSMF, ~30 FPS`
 | OpenCV garip hatalar veriyor | `opencv-python` ile `opencv-contrib-python` birlikte kurulmuş olabilir. `pip uninstall opencv-python` ile ilkini kaldırınız. |
 | `Kamera açılamadı` | Kamera başka bir uygulamada açık olabilir. Başka bir kamera için `--kaynak 1` deneyebilirsiniz. |
 | FPS düşük | Terminaldeki `[Kamera]` satırına bakınız. Kamera 30 FPS veriyorsa sınır işlemcidir. Ağır dersler (15, 16, 17) zayıf cihazda daha yavaş çalışır. |
+| `[Kamera] Çok yavaş` uyarısı | Kamera başka bir programda açık. Açık kalan başka bir dersi kapatınız. Kamerayı aynı anda yalnız bir ders kullanabilir. |
+| Hologram masasında (Ders 6, 7) kart görünmüyor | Masa tarayıcıdadır, OpenCV penceresi yalnız önizlemedir. Adımlar [Ders 6](dersler/ders_06_hologram_masasi/#çalıştırma) bölümündedir. |
 
 ## Dersler
 
@@ -155,7 +157,7 @@ Her ders aynı seçenekleri destekler.
 ```bash
 pytest -m "not uctan_uca"   # Birim testleri: kamera ve model gerekmez, CI'da çalışır
 pytest -m uctan_uca         # Her dersi gerçek modellerle videolar / fotoğraflar üzerinde çalıştırır
-pytest                      # Hepsi (172 test)
+pytest                      # Hepsi (173 test)
 ```
 
 Birim testleri sentetik el, yüz ve vücut verisiyle çalışır: çimdik katmanları, hologram fiziği,

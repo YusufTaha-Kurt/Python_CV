@@ -47,8 +47,8 @@ def calistir(args, masa, baslik, icerik_klasoru=None, piramit=False):
     yayin = CanliYayin(WEB_KLASORU, port=args.port, ek_klasorler=ek, izinli_komutlar={"kart_ekle", "toparla"})
     url = yayin.baslat() + ("?piramit=1" if piramit else "")
     print(f"Hologram masası: {url}  (kapatmak için önizleme penceresinde q ya da Ctrl+C)")
-    if not args.tarayici_acma:
-        webbrowser.open(url)
+    print("Kamera ve el modeli hazırlanıyor, hazır olunca tarayıcı açılacak...")
+    tarayici_acilacak = not args.tarayici_acma
 
     fps = hud.FpsSayaci()
     app = Uygulama(args, baslik)
@@ -65,13 +65,27 @@ def calistir(args, masa, baslik, icerik_klasoru=None, piramit=False):
                 durum = masa.durum()
                 durum["fps"] = round(fps.tik())
                 yayin.durum_yayinla(durum)
+                if tarayici_acilacak:
+                    # İlk sahne hazır: sayfa açılır açılmaz kartları ve kamerayı görür
+                    tarayici_acilacak = False
+                    print("Hazır. Masa tarayıcıda açılıyor (bu pencere sadece önizleme).")
+                    webbrowser.open(url)
 
                 if not args.pencere_yok:
                     onizleme = cv2.resize(kare, (640, int(640 * yukseklik / genislik)))
                     oran = 640 / genislik
                     for el in eller:
                         hud.iskelet_ciz(onizleme, el.noktalar * oran)
-                    hud.panel(onizleme, [f"Tarayici: {url}", f"FPS: {durum['fps']}", "q: cikis"], baslik=baslik)
+                    hud.panel(
+                        onizleme,
+                        [
+                            ("ONIZLEME: masa tarayicida", hud.TURUNCU),
+                            url,
+                            f"FPS: {durum['fps']}",
+                            "q: cikis",
+                        ],
+                        baslik=baslik,
+                    )
                     app.goster(onizleme)
     except KeyboardInterrupt:
         pass

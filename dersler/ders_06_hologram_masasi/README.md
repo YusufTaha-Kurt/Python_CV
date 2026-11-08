@@ -44,11 +44,24 @@ tutmaz, hızla sallanan el "hayalet" çimdiktir ve bir şey kavrayamaz.
 ## Çalıştırma
 
 ```bash
-python dersler/ders_06_hologram_masasi/hologram_masasi.py
+python baslat.py 6
 ```
 
-Tarayıcı otomatik açılır (`http://127.0.0.1:8765/`). Tarayıcıda **f** tam ekran, **h** yardımı
-gizler, **p** piramit modu (Ders 7). Kapatmak için önizleme penceresinde **q** ya da terminalde Ctrl+C.
+1. Kamerayı kullanan başka bir dersi kapatınız. Kamerayı aynı anda yalnız bir ders kullanabilir.
+2. Terminalde `Kamera ve el modeli hazırlanıyor...` yazar. Hazır olunca tarayıcı kendiliğinden
+   açılır (`http://127.0.0.1:8765/`).
+3. Masa **tarayıcıdadır**. Kamera görüntüsünün üstünde kartlar ve sağ altta 3D reaktör görünür.
+   Ayrıca açılan küçük OpenCV penceresi yalnız önizlemedir.
+4. Elinizi kameraya gösteriniz. Parmak ucunuzda mavi bir halka belirir.
+5. Halkayı bir kartın üstüne getirip OK işareti yapınız. İşaret parmağı başparmağa değer,
+   diğer üç parmak açık kalır. Kart elinizle birlikte taşınır.
+
+Tarayıcıda **f** tam ekran, **h** yardımı gizler, **t** kartları toparlar, **p** piramit modunu
+açar (Ders 7). Kapatmak için önizleme penceresinde **q** ya da terminalde Ctrl+C kullanılır.
+
+Sol alttaki bilgi kutusunda `takip - FPS · 0 nesne` yazıp kartlar görünmüyorsa Python tarafından
+durum gelmiyordur. Terminaldeki `[Kamera]` satırına bakınız. Kamera başka bir programda açıksa
+orada uyarı çıkar.
 
 **Kendi içeriğin:** `icerik/` klasörüne `.md` dosyaları (ilk satır başlık olur) ve görseller
 (`.png`, `.jpg`) bırak, masaya kart olarak gelirler. Ayrıca başka bir program

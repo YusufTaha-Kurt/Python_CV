@@ -10,6 +10,7 @@ import cv2
 GORSEL_UZANTILARI = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 YENIDEN_BAGLANMA_ARALIGI = 2.0  # saniye
 YETERLI_FPS = 27  # Webcam'lerin çoğunun tavanı 30 FPS: buna ulaşan ilk ayar seçilir
+COK_YAVAS_FPS = 5  # Bunun altı genelde kameranın başka bir programda açık olduğunu gösterir
 
 
 def fps_olc(kamera, sure=1.0, isinma=3):
@@ -133,9 +134,14 @@ class Kamera:
                 break
         if en_iyi is None:
             return None
-        fps, self._secilen, kamera = en_iyi
-        api, genislik, yukseklik = self._secilen
+        fps, aday, kamera = en_iyi
+        _, genislik, yukseklik = aday
         print(f"[Kamera] {genislik}x{yukseklik}, {kamera.getBackendName()}, ~{fps:.0f} FPS")
+        if fps < COK_YAVAS_FPS:
+            # Ölçüm güvenilmez: yeniden bağlanırken tekrar ölçülsün
+            print("[Kamera] Çok yavaş. Kamera başka bir programda (örneğin açık kalmış başka bir ders) açık olabilir.")
+        else:
+            self._secilen = aday
         return kamera
 
     def _oku_dongusu(self):

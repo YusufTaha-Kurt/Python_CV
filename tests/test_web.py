@@ -73,6 +73,15 @@ def test_durum_akisi_en_son_durumu_verir(yayin):
     assert json.loads(istek(yayin, "GET", "/durum.json")[1]) == {"n": 2}
 
 
+def test_durum_akisi_ilk_durumu_bekler(yayin):
+    """Kamera ve model hazırlanırken bağlanan tarayıcıya boş "{}" gönderilmez, ilk gerçek durum beklenir.
+    Boş durum hologram sayfasının çizim döngüsünü bozuyordu."""
+    yanit = _sse_oku(yayin, "/durum", 1)
+    time.sleep(0.3)  # Bağlantı ilk durumdan ÖNCE kuruldu
+    yayin.durum_yayinla({"nesneler": []})
+    assert _sonraki_veri(yanit) == {"nesneler": []}
+
+
 def test_olay_akisi_hepsini_sirayla_verir(yayin):
     yanit = _sse_oku(yayin, "/olaylar", 3)
     time.sleep(0.2)  # İstemci kuyruğu oluşsun
