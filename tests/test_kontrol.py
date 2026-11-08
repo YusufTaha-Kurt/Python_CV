@@ -56,11 +56,12 @@ def test_pencere_kontrol_jestler_ve_aktiflik():
     yol, klavye, fare = OlayYolu(), SahteKlavye(), SahteFare()
     pencere = PencereKontrol(yol, el="sag", klavye=klavye, fare=fare)
     yol.yayinla("jest.degisti", el="sag", jest="onay")
-    yol.yayinla("jest.kaydirma", el="sag", yon="sol")
+    yol.yayinla("jest.kaydirma", el="sag", yon="sag")  # Sağa kaydır: sağdaki masaüstü
+    yol.yayinla("jest.kaydirma", el="sag", yon="sol")  # Sola kaydır: soldaki masaüstü
     yol.yayinla("jest.degisti", el="sol", jest="bozkurt")  # Diğer el: yok sayılır
     pencere.aktif = False
     yol.yayinla("jest.degisti", el="sag", jest="bozkurt")  # Mod kapalı: yok sayılır
-    assert klavye.basilanlar == ["win+up", "ctrl+win+right"]
+    assert klavye.basilanlar == ["win+up", "ctrl+win+right", "ctrl+win+left"]
 
 
 def test_pencere_kardeslik_ile_kaydirir():

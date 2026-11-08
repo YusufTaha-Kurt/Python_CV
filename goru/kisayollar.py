@@ -2,8 +2,8 @@
 
 PENCERE modu jest sözlüğü (kontrol eli):
     Kardeşlik + yukarı / aşağı            Sayfayı kaydır (dokunmatik ekran gibi: içerik elle gelir)
-    Avuçla sola kaydır                    Sağdaki sanal masaüstüne geç (Win+Ctrl+Sağ)
-    Avuçla sağa kaydır                    Soldaki sanal masaüstüne geç (Win+Ctrl+Sol)
+    Avuçla sağa kaydır                    Sağdaki sanal masaüstüne geç (Win+Ctrl+Sağ)
+    Avuçla sola kaydır                    Soldaki sanal masaüstüne geç (Win+Ctrl+Sol)
     Onay (başparmak yukarı)               Pencereyi büyüt (Win+Yukarı)
     Bozkurt işareti                       Pencereyi küçült (Win+Aşağı)
     L işareti                             Önceki pencereye geç (Alt+Tab)
@@ -17,10 +17,10 @@ ISLER = {
     "bozkurt": ("pencereyi kucult", ("win", "down")),
     "l_isareti": ("pencere degistir", ("alt", "tab")),
 }
-# El sola kayınca içerik de sola kayar ve sağdaki masaüstü görünür (dokunmatik yüzey gibi)
+# El hangi yöne giderse o yöndeki masaüstüne geçilir (medya kontrolündeki sağa = sonraki ile aynı mantık)
 KAYDIRMALAR = {
-    "sol": ("sagdaki masaustu", ("ctrl", "win", "right")),
-    "sag": ("soldaki masaustu", ("ctrl", "win", "left")),
+    "sag": ("sagdaki masaustu", ("ctrl", "win", "right")),
+    "sol": ("soldaki masaustu", ("ctrl", "win", "left")),
 }
 
 

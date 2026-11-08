@@ -20,7 +20,7 @@ avuç modu değiştirmez; dinlenen bir el yanlışlıkla mod değiştirmesin diy
 |-----|-------------|
 | **1 FARE** | Ders 5: OK çimdiği tık / çift tık / sürükle, başparmak + orta parmak sağ tık |
 | **2 MEDYA** | Ders 4: L işareti ses seviyesi, onay oynat/duraklat, avuçla parça değiştir, bozkurt sessiz |
-| **3 PENCERE** | Kardeşlik + yukarı / aşağı: sayfayı kaydır · avuçla sola / sağa: sanal masaüstü değiştir · onay: pencereyi büyüt · bozkurt: küçült · L işareti: Alt+Tab |
+| **3 PENCERE** | Kardeşlik + yukarı / aşağı: sayfayı kaydır · avuçla sağa / sola: sağdaki / soldaki sanal masaüstü · onay: pencereyi büyüt · bozkurt: küçült · L işareti: Alt+Tab |
 
 Her modda kontrol eliyle **yumruk (0.5 sn)** uyku modunu açar / kapatır.
 
